@@ -23,12 +23,14 @@ app.get('/', (req,res) => {
   res.send('Hello');
 
 });
+
 //get to <domianName>/urls.json; display json(urlDatabase)
 app.get("/urls.json", (req,res) => {
 
   res.json(urlDatabase);
 
 })
+
 
 //get to <domianName>/urls.json; display json(urlDatabase)
 app.get("/hello", (req, res) => {
@@ -41,3 +43,10 @@ app.listen(PORT, () => {
 
 });
 
+//new route handles to incorporate ejs view engine;
+app.get('/urls', (req,res) => {
+
+  const templateVars = { urls: urlDatabase };
+  res.render("urls_index", templateVars);
+
+}); 

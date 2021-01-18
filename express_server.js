@@ -24,12 +24,12 @@ app.get('/', (req,res) => {
 
 });
 
-//get to <domianName>/urls.json; display json(urlDatabase)
-app.get("/urls.json", (req,res) => {
+//get to <domianName>/urls.json; display json(urlDatabase)  - this is not longer needed since we are using ejs now (new get on line 46)
+// app.get("/urls.json", (req,res) => {
 
-  res.json(urlDatabase);
+//   res.json(urlDatabase);
 
-})
+// })
 
 
 //get to <domianName>/urls.json; display json(urlDatabase)
@@ -43,10 +43,21 @@ app.listen(PORT, () => {
 
 });
 
-//new route handles to incorporate ejs view engine;
+//new route handlers to incorporate ejs view engine;
 app.get('/urls', (req,res) => {
 
+  //templateVars gets sent to es6 as an object.. 
   const templateVars = { urls: urlDatabase };
+  //templateVars - used to send data to front end
+  //respond by rendering 
   res.render("urls_index", templateVars);
 
 }); 
+
+app.get("/urls/:shortURL", (req, res) => {
+
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
+  //pass templateVars to ejs  
+  res.render("urls_show", templateVars);
+
+});

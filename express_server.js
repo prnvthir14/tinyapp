@@ -9,6 +9,9 @@ const PORT = 8080;
 //using ejs as our apps templating engine
 app.set("view engine", "ejs");
 
+//
+const bodyParser = require("body-parser");
+app.use(bodyParser.urlencoded({extended: true}));
 
 // test data to work with
 const urlDatabase = {
@@ -63,6 +66,12 @@ app.get("/urls/new", (req, res) => {
 
 });
 
+//POST route to handle the submission.
+app.post("/urls", (req, res) => {
+  console.log(req.body);  // Log the POST request body to the console
+  res.send("Ok");         // Respond with 'Ok' (we will replace this)
+});
+
 //urls/:id render.. 
 app.get("/urls/:shortURL", (req, res) => {
 
@@ -72,7 +81,24 @@ app.get("/urls/:shortURL", (req, res) => {
 
 });
 
+//function to generate random string
 
+function generateRandomString() {
 
+  let randomString = '';
+  let lengthOfTinyURL = 6;
 
-//POST route to handle the submission.
+  // declare all characters
+  const characters ='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const charactersLength = characters.length;
+
+  for (let i = 0; i < lengthOfTinyURL; i++){
+
+    randomString += characters.charAt(Math.floor(Math.random() * charactersLength));
+
+  }
+
+  return randomString;
+
+}
+

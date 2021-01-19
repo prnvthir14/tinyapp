@@ -19,21 +19,6 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
-
-//if method is get and path = root
-app.get('/', (req,res) => {
-
-  res.send('Hello');
-
-});
-
-//get to <domianName>/urls.json; display json(urlDatabase)  - this is not longer needed since we are using ejs now (new get on line 46)
-// app.get("/urls.json", (req,res) => {
-
-//   res.json(urlDatabase);
-
-// })
-
 //generate random alpha numeric 6 digit string for URL
 function generateRandomString() {
 
@@ -56,9 +41,10 @@ function generateRandomString() {
 
 
 //get to <domianName>/urls.json; display json(urlDatabase)
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
-});
+//test to check server ius running: 
+// app.get("/hello", (req, res) => {
+//   res.send("<html><body>Hello <b>World</b></body></html>\n");
+// });
 
 app.listen(PORT, () => {
 
@@ -69,6 +55,9 @@ app.listen(PORT, () => {
 
 
 //new route handlers to incorporate ejs view engine;
+
+// ROUTE #1
+// /urls - route page that displays all short URL and Long URLs in our urlDatabase. - VERIFIED 
 app.get('/urls', (req,res) => {
 
   //templateVars gets sent to es6 as an object.. 
@@ -79,7 +68,7 @@ app.get('/urls', (req,res) => {
 
 }); 
 
-
+// ROUTE #2
 //GET route to render the urls_new.ejs template.
 // /urls/new route needs to be defined before the GET /urls/:id r
 app.get("/urls/new", (req, res) => {
@@ -88,13 +77,16 @@ app.get("/urls/new", (req, res) => {
 
 });
 
+//ROUTE for this post matches route #1...
 //POST route to handle the submission.
+//this is a separate route from route#2
 app.post("/urls", (req, res) => {
   //console.log(req.body);  // Log the POST request body to the console
   //req.body needs to be added as a value to our URL DB
   //declare and generate new key/tinyURL;
 
   let newKeyAKAShortURL = generateRandomString();
+  //req.body.longURL; what the user enters in the submission box
   
   urlDatabase[(newKeyAKAShortURL)] = req.body.longURL;
   
@@ -102,13 +94,17 @@ app.post("/urls", (req, res) => {
   //ok, checked that the urlDatabse has b
   //res.send('ok');         // Respond with 'Ok' (we will replace this)
   ///everything works till here.. now trying redirect... 
+
+
+  //is this the location response header??
+  //redirect sends this to route #3
   res.redirect(`/urls/${newKeyAKAShortURL}`);
   
 });
 
 //our express server so that the shortURL-longURL key-value pair are saved to the urlDatabase when it receives a POST request to /urls
 
-
+//ROUTE #3
 //urls/:id render.. 
 app.get("/urls/:shortURL", (req, res) => {
 
@@ -117,6 +113,9 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars);
 
 });
+
+
+//ROUTE #4
 //add route to redirect to to website given a shortURL discriptor in the url
 app.get("/u/:shortURL", (req, res) => {
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
@@ -126,3 +125,7 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 
+// //need to fix the ejs files I think... should all the links go to something?
+// What would happen if a client requests a non-existent shortURL?
+// What happens to the urlDatabase when the server is restarted?
+// What type of status code do our redirects have? What does this status code mean?

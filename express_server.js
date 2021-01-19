@@ -21,22 +21,6 @@ const urlDatabase = {
 };
 
 
-const generateCurrentShortURL = function (urlDatabase){
-
-  let currentShortUrl = [];
-
-  for (let shortURL in urlDatabase){
-
-    currentShortUrl.push(shortURL);
-  
-  }
-
-  return currentShortUrl
-
-}
-
-let listOfCurrentShortURL = generateCurrentShortURL(urlDatabase)
-
 //generate random alpha numeric 6 digit string for URL
 function generateRandomString() {
 
@@ -109,24 +93,6 @@ app.post("/urls", (req, res) => {
   
 });
 
-//our express server so that the shortURL-longURL key-value pair are saved to the urlDatabase when it receives a POST request to /urls
-
-//function to check if a shortURL entered by the user matches anything currentl in the database.. 
-
-const checkForURL = (listOfCurrentShortURL, shortURLFromUser) => {
-
-  if ((listOfCurrentShortURL.includes(shortURLFromUser))){
-
-    return true;
-
-  } else {
-
-    return false;
-
-  }
-
-}
-
 
 //ROUTE #4
 //urls/:id render.. 
@@ -167,8 +133,16 @@ app.get("/u/:shortURL", (req, res) => {
 
 });
 
+//route #6 
+//app.post that gets requested once the delete button on /urls gets clicked.
+app.post('/urls/:shortURL/delete', (req,res) => {
 
-// //need to fix the ejs files I think... should all the links go to something?
-// What would happen if a client requests a non-existent shortURL?
-// What happens to the urlDatabase when the server is restarted?
-// What type of status code do our redirects have? What does this status code mean?
+  // console.log('hi');
+  // res.send('hi, we are about to inintate a delete')
+  //confirmed that post request is initiated after click.
+  delete urlDatabase[req.params.shortURL];
+
+  res.redirect(`/urls`)
+
+
+});

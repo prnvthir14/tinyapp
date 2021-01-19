@@ -11,6 +11,7 @@ app.set("view engine", "ejs");
 
 //
 const bodyParser = require("body-parser");
+const e = require("express");
 app.use(bodyParser.urlencoded({extended: true}));
 
 // test data to work with
@@ -18,6 +19,23 @@ const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
+
+
+const generateCurrentShortURL = function (urlDatabase){
+
+  let currentShortUrl = [];
+
+  for (let shortURL in urlDatabase){
+
+    currentShortUrl.push(shortURL);
+  
+  }
+
+  return currentShortUrl
+
+}
+
+let listOfCurrentShortURL = generateCurrentShortURL(urlDatabase)
 
 //generate random alpha numeric 6 digit string for URL
 function generateRandomString() {
@@ -79,7 +97,11 @@ app.get("/urls/new", (req, res) => {
 
 //ROUTE for this post matches route #1...
 //POST route to handle the submission.
-//this is a separate route from route#2
+//route #2 & #3 are separate routes... note that we alread have defined a app.ger for route #3 (route #1)
+
+//route#2's ejs template (urls_new) contains a form object which upon submission invokes route#3..
+ 
+//ROUTE 3
 app.post("/urls", (req, res) => {
   //console.log(req.body);  // Log the POST request body to the console
   //req.body needs to be added as a value to our URL DB
@@ -104,23 +126,67 @@ app.post("/urls", (req, res) => {
 
 //our express server so that the shortURL-longURL key-value pair are saved to the urlDatabase when it receives a POST request to /urls
 
-//ROUTE #3
+//function to check if a shortURL entered by the user matches anything currentl in the database.. 
+
+const checkForURL = (listOfCurrentShortURL, shortURLFromUser) => {
+
+  if ((listOfCurrentShortURL.includes(shortURLFromUser))){
+
+    return true;
+
+  } else {
+
+    return false;
+
+  }
+
+}
+
+
+//ROUTE #4
 //urls/:id render.. 
 app.get("/urls/:shortURL", (req, res) => {
 
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
-  //pass templateVars to ejs  
+  //
+  
   res.render("urls_show", templateVars);
+  
+  //NEED TO COME BACK TO IMPLEMENT THIS
+  // if ((checkForURL(listOfCurrentShortURL, req.params.shortURL))){
+
+  //   //pass templateVars to ejs  
+  //   res.render("urls_show", templateVars);
+
+  // } else {
+
+  //   res.send('ShortURL does not exist.');
+
+  // };
 
 });
 
 
-//ROUTE #4
+//ROUTE #5
 //add route to redirect to to website given a shortURL discriptor in the url
 app.get("/u/:shortURL", (req, res) => {
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
+  
   //use shortURL to provide long url...
   res.redirect(templateVars.longURL);
+
+
+  //NEED TO COME BACK TO IMPLEMENT THIS
+  // if ((checkForURL(listOfCurrentShortURL, req.params.shortURL))){
+
+  //   //pass templateVars to ejs  
+  //   res.render("urls_show", templateVars);
+
+  // } else {
+
+  //   res.send('ShortURL does not exist.');
+
+  // };
 
 });
 

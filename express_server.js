@@ -117,11 +117,12 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars);
 
 });
+//add route to redirect to to website given a shortURL discriptor in the url
+app.get("/u/:shortURL", (req, res) => {
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
+  //use shortURL to provide long url...
+  res.redirect(templateVars.longURL);
 
-//function to generate random string
+});
 
 
-/////start hereee
-// Browser renders the jtml form received:
-// we have Example app listening on port 8080!
-// { longURL: 'http://www.mysite1234zsad.com' }

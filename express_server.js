@@ -58,21 +58,12 @@ function generateRandomString() {
 }
 
 
-//get to <domianName>/urls.json; display json(urlDatabase)
-//test to check server ius running: 
-// app.get("/hello", (req, res) => {
-//   res.send("<html><body>Hello <b>World</b></body></html>\n");
-// });
-
 app.listen(PORT, () => {
 
   console.log(`Example app listening on port ${PORT}!`);
 
 });
 
-
-
-//new route handlers to incorporate ejs view engine;
 
 // ROUTE #1
 // /urls - route page that displays all short URL and Long URLs in our urlDatabase. - VERIFIED 
@@ -111,12 +102,6 @@ app.post("/urls", (req, res) => {
   //req.body.longURL; what the user enters in the submission box
   
   urlDatabase[(newKeyAKAShortURL)] = req.body.longURL;
-  
-  //console.log(urlDatabase)
-  //ok, checked that the urlDatabse has b
-  //res.send('ok');         // Respond with 'Ok' (we will replace this)
-  ///everything works till here.. now trying redirect... 
-
 
   //is this the location response header??
   //redirect sends this to route #3
@@ -148,21 +133,17 @@ const checkForURL = (listOfCurrentShortURL, shortURLFromUser) => {
 app.get("/urls/:shortURL", (req, res) => {
 
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
-  //
   
-  res.render("urls_show", templateVars);
-  
-  //NEED TO COME BACK TO IMPLEMENT THIS
-  // if ((checkForURL(listOfCurrentShortURL, req.params.shortURL))){
+  if (urlDatabase[req.params.shortURL]){
 
-  //   //pass templateVars to ejs  
-  //   res.render("urls_show", templateVars);
+    res.render("urls_show", templateVars);
 
-  // } else {
 
-  //   res.send('ShortURL does not exist.');
+  } else {
 
-  // };
+    res.send('The url Does not exist');
+
+  }
 
 });
 
@@ -171,22 +152,18 @@ app.get("/urls/:shortURL", (req, res) => {
 //add route to redirect to to website given a shortURL discriptor in the url
 app.get("/u/:shortURL", (req, res) => {
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
-  
+ 
+  if (urlDatabase[req.params.shortURL]){
+
   //use shortURL to provide long url...
   res.redirect(templateVars.longURL);
+ 
 
+  } else {
 
-  //NEED TO COME BACK TO IMPLEMENT THIS
-  // if ((checkForURL(listOfCurrentShortURL, req.params.shortURL))){
+    res.send('The url Does not exist');
 
-  //   //pass templateVars to ejs  
-  //   res.render("urls_show", templateVars);
-
-  // } else {
-
-  //   res.send('ShortURL does not exist.');
-
-  // };
+  }
 
 });
 

@@ -54,6 +54,16 @@ app.get('/urls', (req,res) => {
 
 }); 
 
+
+//GET route to render the urls_new.ejs template.
+// /urls/new route needs to be defined before the GET /urls/:id r
+app.get("/urls/new", (req, res) => {
+
+  res.render("urls_new");
+
+});
+
+//urls/:id render.. 
 app.get("/urls/:shortURL", (req, res) => {
 
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
@@ -61,3 +71,8 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars);
 
 });
+
+
+
+
+//POST route to handle the submission.

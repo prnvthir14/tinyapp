@@ -34,6 +34,26 @@ app.get('/', (req,res) => {
 
 // })
 
+//generate random alpha numeric 6 digit string for URL
+function generateRandomString() {
+
+  let randomString = '';
+  let lengthOfTinyURL = 6;
+
+  // declare all characters
+  const characters ='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const charactersLength = characters.length;
+
+  for (let i = 0; i < lengthOfTinyURL; i++){
+
+    randomString += characters.charAt(Math.floor(Math.random() * charactersLength));
+
+  }
+
+  return randomString;
+
+}
+
 
 //get to <domianName>/urls.json; display json(urlDatabase)
 app.get("/hello", (req, res) => {
@@ -45,6 +65,8 @@ app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 
 });
+
+
 
 //new route handlers to incorporate ejs view engine;
 app.get('/urls', (req,res) => {
@@ -68,9 +90,22 @@ app.get("/urls/new", (req, res) => {
 
 //POST route to handle the submission.
 app.post("/urls", (req, res) => {
-  console.log(req.body);  // Log the POST request body to the console
+  //console.log(req.body);  // Log the POST request body to the console
+  //req.body needs to be added as a value to our URL DB
+  //declare and generate new key/tinyURL;
+
+  let newKeyAKAShortURL = generateRandomString();
+  
+  urlDatabase[newKeyAKAShortURL] = req.body.longURL;
+  
+  //console.log(urlDatabase)
+  //ok, checked that the urlDatabse has b
   res.send("Ok");         // Respond with 'Ok' (we will replace this)
+  
 });
+
+//our express server so that the shortURL-longURL key-value pair are saved to the urlDatabase when it receives a POST request to /urls
+
 
 //urls/:id render.. 
 app.get("/urls/:shortURL", (req, res) => {
@@ -83,22 +118,8 @@ app.get("/urls/:shortURL", (req, res) => {
 
 //function to generate random string
 
-function generateRandomString() {
 
-  let randomString = '';
-  let lengthOfTinyURL = 6;
-
-  // declare all characters
-  const characters ='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  const charactersLength = characters.length;
-
-  for (let i = 0; i < lengthOfTinyURL; i++){
-
-    randomString += characters.charAt(Math.floor(Math.random() * charactersLength));
-
-  }
-
-  return randomString;
-
-}
-
+/////start hereee
+// Browser renders the jtml form received:
+// we have Example app listening on port 8080!
+// { longURL: 'http://www.mysite1234zsad.com' }

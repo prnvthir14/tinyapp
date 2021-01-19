@@ -96,11 +96,13 @@ app.post("/urls", (req, res) => {
 
   let newKeyAKAShortURL = generateRandomString();
   
-  urlDatabase[newKeyAKAShortURL] = req.body.longURL;
+  urlDatabase[(newKeyAKAShortURL)] = req.body.longURL;
   
   //console.log(urlDatabase)
   //ok, checked that the urlDatabse has b
-  res.send("Ok");         // Respond with 'Ok' (we will replace this)
+  //res.send('ok');         // Respond with 'Ok' (we will replace this)
+  ///everything works till here.. now trying redirect... 
+  res.redirect(`/urls/${newKeyAKAShortURL}`);
   
 });
 

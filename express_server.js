@@ -146,3 +146,24 @@ app.post('/urls/:shortURL/delete', (req,res) => {
 
 
 });
+
+//route #7 
+//app.post that gets requested once the delete button on /urls gets clicked.
+app.post('/urls/:id', (req,res) => {
+
+  console.log(req.body) //- contains shortURL: 'key'
+  //once our edit button is clicked, this route gets initated
+  const shortURL = req.params.id;
+  const letNewLongURL = req.body.longURL;
+  
+  urlDatabase[shortURL] = letNewLongURL;
+  
+  ////need to update URL 
+  //first redirect to /urls/:shortURL
+  res.redirect(`/urls`)
+  // console.log(req.body)
+
+});
+
+
+// action="/urls/<%= url %>"> initiaes our route

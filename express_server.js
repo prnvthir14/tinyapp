@@ -206,4 +206,15 @@ app.post('/urls/:id', (req,res) => {
 });
 
 
+//route #10
+app.get('/register', (req,res) => {
+
+  console.log('i')
+
+
+  res.render("registration")
+
+})
+
+
 

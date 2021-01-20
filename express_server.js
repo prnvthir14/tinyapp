@@ -53,38 +53,81 @@ app.listen(PORT, () => {
 });
 
 //empty object to store user data on registration
-let myAppUsers = {}
+const myAppUsers = { 
+  "userRandomID": {
+    id: "userRandomID", 
+    email: "user@example.com", 
+    password: "purple-monkey-dinosaur"
+  },
+ "user2RandomID": {
+    id: "user2RandomID", 
+    email: "user2@example.com", 
+    password: "dishwasher-funk"
+  }
+}
+
+
+
+//function to check for existing emails..
+const checkForEmail = function (emailToCheck){
+
+  for (let x in myAppUsers){  
+  
+    // console.log(myAppUsers[x].email)
+    if(emailToCheck === myAppUsers[x].email){
+      //if email exists, return true
+      return true;
+  
+    }  
+  }
+  return false;
+}
+
+
 
 // route #11
 app.post('/register', (req,res) => {
 
   // console.log(req.body.email) // returns email provided by user
   // console.log(req.body.password) // returns pw provided by user
-  let userId = generateRandomString();
 
-  myAppUsers[userId]={
+  //f the e-mail or password are empty strings, send back a response with the 400 status code.
+  console.log(myAppUsers)
+  //if email or pw are empty, return 400
+  let userEnteredEmail = req.body.email;
+  let userEnteredPassword = req.body.password;
 
-    'id': userId,
-    'email' : req.body.email,
-    'password' : req.body.password
+  //
+  //need to pass 
+  //if email is empty, or password is empty or checkForExistingEmail true (email exists) then return status code..
+  if ( ((userEnteredEmail) === '') || ((userEnteredPassword) === '') || ((checkForEmail(userEnteredEmail))) === true) {
+    
+    res.send('Status Code: 400')
+  
+  } else {
+    //register user
+
+    let userId = generateRandomString();
+
+    myAppUsers[userId]={
+  
+      'id': userId,
+      'email' : req.body.email,
+      'password' : req.body.password
+    }
+  
+  
+    //set cookie to remember userID
+    res.cookie('user_id', userId )
+  
+  
+    //redirect to
+    res.redirect('/urls')
   }
-  // //check myAppUsers gets populate..yes
-  //console.log(myAppUsers)
-  //output{ K1C5mH: 
-  //  { id: 'K1C5mH',
-  //  email: 'sadasd@asdasdas',
-  //  password: 'asdasdasdas' } }
+  
 
-  //set cookie to remember userID
-  res.cookie('user_id', userId )
-  //console.log(req.cookies.user_id)
-  //returns stored id  
-  //redirect to
-  res.redirect('/urls')
 
 })
-
-
 
 
 // ROUTE #8 by sequence.. moved here because I think username is going to be required in the routes below...
@@ -105,7 +148,7 @@ app.post('/login', (req,res) => {
 app.post('/logout', (req,res) =>{
 
   // res.cookie('username','')
-  res.clearCookie('username')
+  res.clearCookie('user_id')
 
   // // //
   // res.redirect('/urls')
@@ -137,7 +180,7 @@ app.get('/urls', (req,res) => {
   //respond by rendering.. parameter 1 is the view we want to look at and template vars is the database object.. would probably be a link to some server/external db..
 
   //console.log(templateVars)
-
+  console.log(myAppUsers)
 
   res.render("urls_index", templateVars);
 
@@ -148,7 +191,7 @@ app.get('/urls', (req,res) => {
 // /urls/new route needs to be defined before the GET /urls/:id r
 app.get("/urls/new", (req, res) => {
 
-  const templateVars = {username: req.cookies.username}
+  const templateVars = {user: myAppUsers[req.cookies.user_id]}
 
   res.render("urls_new", templateVars);
 
@@ -183,7 +226,7 @@ app.post("/urls", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
 
   
-  const templateVars = { username: req.cookies.user_id, shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
+  const templateVars = { user: myAppUsers[req.cookies.user_id], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
   
   if (urlDatabase[req.params.shortURL]){
 
@@ -199,10 +242,16 @@ app.get("/urls/:shortURL", (req, res) => {
 });
 
 
+
+//inputEmail = req.body.email when checkForExistingEmail is called in the route.. 
+//userDatabse = myAppUsers when checkForExistingEmail is called in the route.. 
+//generatedUserId
+
+
 //ROUTE #5
 //add route to redirect to to website given a shortURL discriptor in the url
 app.get("/u/:shortURL", (req, res) => {
-  const templateVars = {username: req.cookies.user_id, shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
+  const templateVars = {user: myAppUsers[req.cookies.user_id], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
  
   if (urlDatabase[req.params.shortURL]){
 

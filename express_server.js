@@ -52,6 +52,38 @@ app.listen(PORT, () => {
 
 });
 
+//empty object to store user data on registration
+let myAppUsers = {}
+
+// route #11
+app.post('/register', (req,res) => {
+
+  // console.log(req.body.email) // returns email provided by user
+  // console.log(req.body.password) // returns pw provided by user
+  let userId = generateRandomString();
+
+  myAppUsers[userId]={
+
+    'id': userId,
+    'email' : req.body.email,
+    'password' : req.body.password
+  }
+  // //check myAppUsers gets populate..yes
+  //console.log(myAppUsers)
+  //output{ K1C5mH: 
+  //  { id: 'K1C5mH',
+  //  email: 'sadasd@asdasdas',
+  //  password: 'asdasdasdas' } }
+
+  //set cookie to remember userID
+  res.cookie('user_id', userId )
+  //console.log(req.cookies.user_id)
+  //returns stored id  
+  //redirect to
+  res.redirect('/urls')
+
+})
+
 
 
 
@@ -91,9 +123,22 @@ app.get('/urls', (req,res) => {
   // console.log(req.cookies.username) //returns username from cookie
 
   //templateVars gets sent to es6 as an object.. 
-  const templateVars = {username: req.cookies.username, urls: urlDatabase};
+  // //what it should be: 
+  // const templateVars = {username: myAppUsers[req.cookies.user_id], urls: urlDatabase};
+
+  // testting username from cookies
+  const templateVars = 
+  {user: myAppUsers[req.cookies.user_id],
+    urls: urlDatabase
+  };
+  
+
   //templateVars - used to send data to front end
   //respond by rendering.. parameter 1 is the view we want to look at and template vars is the database object.. would probably be a link to some server/external db..
+
+  //console.log(templateVars)
+
+
   res.render("urls_index", templateVars);
 
 }); 
@@ -138,7 +183,7 @@ app.post("/urls", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
 
   
-  const templateVars = { username: req.cookies.username, shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
+  const templateVars = { username: req.cookies.user_id, shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
   
   if (urlDatabase[req.params.shortURL]){
 
@@ -157,7 +202,7 @@ app.get("/urls/:shortURL", (req, res) => {
 //ROUTE #5
 //add route to redirect to to website given a shortURL discriptor in the url
 app.get("/u/:shortURL", (req, res) => {
-  const templateVars = {username: req.cookies.username, shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
+  const templateVars = {username: req.cookies.user_id, shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
  
   if (urlDatabase[req.params.shortURL]){
 
@@ -210,42 +255,6 @@ app.post('/urls/:id', (req,res) => {
 app.get('/register', (req,res) => {
 
   res.render("registration")
-
-})
-
-
-//creating object to store userinfo
-//onject of objects..
-//key = userRandomID
-//value = {
-  //   id: "userRandomID", 
-  //   email: "user@example.com", 
-  //   password: "purple-monkey-dinosaur"
-  // }
-
-let myAppUsers = {}
-
-
-// route #11
-app.post('/register', (req,res) => {
-
-  // console.log(req.body.email) // returns email provided by user
-  // console.log(req.body.password) // returns pw provided by user
-  let userId = generateRandomString();
-  myAppUsers[userId]={
-
-    'id': userId,
-    'email' : req.body.email,
-    'password' : req.body.password
-  }
-  // //check myAppUsers gets populate..yes
-  // console.log(myAppUsers)
-
-  //set cookie to remember userID
-  res.cookie('user_id', userId )
-
-  //redirect to
-  res.redirect('/urls')
 
 })
 

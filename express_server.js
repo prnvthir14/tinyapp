@@ -9,9 +9,13 @@ const PORT = 8080;
 //using ejs as our apps templating engine
 app.set("view engine", "ejs");
 
+//cookieparse - takes in string and outputs object for incoming data...
+var cookieParser = require('cookie-parser')
+app.use(cookieParser())
+
 //
 const bodyParser = require("body-parser");
-const e = require("express");
+
 app.use(bodyParser.urlencoded({extended: true}));
 
 // test data to work with
@@ -49,14 +53,47 @@ app.listen(PORT, () => {
 });
 
 
+
+
+// ROUTE #8 by sequence.. moved here because I think username is going to be required in the routes below...
+app.post('/login', (req,res) => {
+  
+  //grab username entered
+  let userNameToStore = req.body.username;
+  //console.log(userNameToStore)
+  //storing the username in a cookie
+  res.cookie('username', userNameToStore )
+  
+  //after storing cookie, return to redirect
+  res.redirect(`/urls`)
+
+});
+
+//route #9 - logout route
+app.post('/logout', (req,res) =>{
+
+  // res.cookie('username','')
+  res.clearCookie('username')
+
+  // // //
+  // res.redirect('/urls')
+
+  // res.cookie('username', '' )
+
+  res.redirect('/urls')
+
+})
+
 // ROUTE #1
 // /urls - route page that displays all short URL and Long URLs in our urlDatabase. - VERIFIED 
 app.get('/urls', (req,res) => {
+  
+  // console.log(req.cookies.username) //returns username from cookie
 
   //templateVars gets sent to es6 as an object.. 
-  const templateVars = { urls: urlDatabase };
+  const templateVars = {username: req.cookies.username, urls: urlDatabase};
   //templateVars - used to send data to front end
-  //respond by rendering 
+  //respond by rendering.. parameter 1 is the view we want to look at and template vars is the database object.. would probably be a link to some server/external db..
   res.render("urls_index", templateVars);
 
 }); 
@@ -66,7 +103,9 @@ app.get('/urls', (req,res) => {
 // /urls/new route needs to be defined before the GET /urls/:id r
 app.get("/urls/new", (req, res) => {
 
-  res.render("urls_new");
+  const templateVars = {username: req.cookies.username}
+
+  res.render("urls_new", templateVars);
 
 });
 
@@ -98,7 +137,8 @@ app.post("/urls", (req, res) => {
 //urls/:id render.. 
 app.get("/urls/:shortURL", (req, res) => {
 
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
+  
+  const templateVars = { username: req.cookies.username, shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
   
   if (urlDatabase[req.params.shortURL]){
 
@@ -117,7 +157,7 @@ app.get("/urls/:shortURL", (req, res) => {
 //ROUTE #5
 //add route to redirect to to website given a shortURL discriptor in the url
 app.get("/u/:shortURL", (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
+  const templateVars = {username: req.cookies.username, shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
  
   if (urlDatabase[req.params.shortURL]){
 
@@ -151,7 +191,7 @@ app.post('/urls/:shortURL/delete', (req,res) => {
 //app.post that gets requested once the delete button on /urls gets clicked.
 app.post('/urls/:id', (req,res) => {
 
-  console.log(req.body) //- contains shortURL: 'key'
+  //console.log(req.body) //- contains shortURL: 'key'
   //once our edit button is clicked, this route gets initated
   const shortURL = req.params.id;
   const letNewLongURL = req.body.longURL;
@@ -166,4 +206,4 @@ app.post('/urls/:id', (req,res) => {
 });
 
 
-// action="/urls/<%= url %>"> initiaes our route
+

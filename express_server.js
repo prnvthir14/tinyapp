@@ -209,12 +209,43 @@ app.post('/urls/:id', (req,res) => {
 //route #10
 app.get('/register', (req,res) => {
 
-  console.log('i')
-
-
   res.render("registration")
 
 })
 
 
+//creating object to store userinfo
+//onject of objects..
+//key = userRandomID
+//value = {
+  //   id: "userRandomID", 
+  //   email: "user@example.com", 
+  //   password: "purple-monkey-dinosaur"
+  // }
+
+let myAppUsers = {}
+
+
+// route #11
+app.post('/register', (req,res) => {
+
+  // console.log(req.body.email) // returns email provided by user
+  // console.log(req.body.password) // returns pw provided by user
+  let userId = generateRandomString();
+  myAppUsers[userId]={
+
+    'id': userId,
+    'email' : req.body.email,
+    'password' : req.body.password
+  }
+  // //check myAppUsers gets populate..yes
+  // console.log(myAppUsers)
+
+  //set cookie to remember userID
+  res.cookie('user_id', userId )
+
+  //redirect to
+  res.redirect('/urls')
+
+})
 

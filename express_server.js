@@ -113,7 +113,6 @@ const checkLoginDetails = (attemptedLoginEmail, attemptedLoginPassword) => {
 
 
 
-// not passing any template 
 app.get('/register', (req,res) => {
 
   res.render('registration')
@@ -181,8 +180,6 @@ app.post('/login', (req,res) => {
   //console.log(userNameToStore)
   let attemptedLoginEmail = req.body.email;
   let attemptedLoginPassword = req.body.password;
-    
-
 
   //after storing cookie, return to redirect
   // res.redirect(`/urls`)
@@ -190,14 +187,15 @@ app.post('/login', (req,res) => {
 
     let user_id_cookie_value = checkLoginDetails(attemptedLoginEmail, attemptedLoginPassword);
     //store user ID cookie  
-    res.cookie('usere_id', user_id_cookie_value)
+    res.cookie('user_id', user_id_cookie_value)
 
-    //redirect to /urls
-    res.redirect('urls')
+    //redirect to /urls -- looks like something needs to be passed here so that 
+    //the logic in the header partial gets activated when
+    res.redirect('/urls')
 
   } else {
 
-    res.send ('403 Forbidden')
+    res.send ('403 Forbidden: Username or password is incorrect.')
 
   }
 

@@ -73,7 +73,7 @@ const checkForEmail = function (emailToCheck){
 
   for (let x in myAppUsers){  
   
-    // console.log(myAppUsers[x].email)
+
     if(emailToCheck === myAppUsers[x].email){
       //if email exists, return true
       return true;
@@ -83,6 +83,43 @@ const checkForEmail = function (emailToCheck){
   return false;
 }
 
+// function to check attempted login credientials against database
+const checkLoginDetails = (attemptedLoginEmail, attemptedLoginPassword) => {  
+
+  for (let users in myAppUsers){
+      
+    //gets us access to all users
+    //console.log(myAppUsers[users].email)
+    //  console.log(myAppUsers[users].password)
+     if (attemptedLoginEmail === myAppUsers[users].email){
+      //works for true case console.log('imhere')
+      if (attemptedLoginPassword === myAppUsers[users].password){
+        //if true and login is successful, return the suer_ud to store in cookie//
+        return myAppUsers[users].id
+                
+      }
+
+    }
+    
+  } 
+  return false; 
+
+}
+
+// route #12
+
+app.get('/login', (req,res) => {
+
+  res.render('login');
+
+});
+
+// not passing any template 
+app.get('/register', (req,res) => {
+
+  res.render('registration')
+
+})
 
 
 // route #11
@@ -92,7 +129,7 @@ app.post('/register', (req,res) => {
   // console.log(req.body.password) // returns pw provided by user
 
   //f the e-mail or password are empty strings, send back a response with the 400 status code.
-  console.log(myAppUsers)
+  //console.log(myAppUsers)
   //if email or pw are empty, return 400
   let userEnteredEmail = req.body.email;
   let userEnteredPassword = req.body.password;
@@ -129,23 +166,44 @@ app.post('/register', (req,res) => {
 
 })
 
+//function to check if an attemted login email address and password match whats in myAppusers
 
-// ROUTE #8 by sequence.. moved here because I think username is going to be required in the routes below...
+
+// ROUTE #8 by sequence.. 
 app.post('/login', (req,res) => {
   
+  //console.log(req.body)
   //grab username entered
-  let userNameToStore = req.body.username;
+  //no longer using the username.. switching to email after form update.
+  // let userNameToStore = req.body.username;
   //console.log(userNameToStore)
-  //storing the username in a cookie
-  res.cookie('username', userNameToStore )
-  
+  let attemptedLoginEmail = req.body.email;
+  let attemptedLoginPassword = req.body.password;
+    
+
+
   //after storing cookie, return to redirect
-  res.redirect(`/urls`)
+  // res.redirect(`/urls`)
+  if (checkLoginDetails(attemptedLoginEmail, attemptedLoginPassword) !== false){
+
+    let user_id_cookie_value = checkLoginDetails(attemptedLoginEmail, attemptedLoginPassword);
+    //store user ID cookie  
+    res.cookie('usere_id', user_id_cookie_value)
+
+    //redirect to /urls
+    res.redirect('urls')
+
+  } else {
+
+    res.send ('403 Forbidden')
+
+  }
 
 });
 
 //route #9 - logout route
 app.post('/logout', (req,res) =>{
+
 
   // res.cookie('username','')
   res.clearCookie('user_id')
@@ -168,7 +226,7 @@ app.get('/urls', (req,res) => {
   //templateVars gets sent to es6 as an object.. 
   // //what it should be: 
   // const templateVars = {username: myAppUsers[req.cookies.user_id], urls: urlDatabase};
-
+  console.log(myAppUsers[req.cookies.user_id])
   // testting username from cookies
   const templateVars = 
   {user: myAppUsers[req.cookies.user_id],
@@ -300,19 +358,3 @@ app.post('/urls/:id', (req,res) => {
 });
 
 
-//route #10
-app.get('/register', (req,res) => {
-
-  res.render('registration')
-
-})
-
-// route #11
-
-app.get('/login', (req,res) => {
-
-
-
-  res.render('login');
-
-});

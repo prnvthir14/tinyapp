@@ -112,6 +112,29 @@ const checkLoginDetails = (attemptedLoginEmail, attemptedLoginPassword) => {
 }
 
 
+//route 0 to home page.. if userId cookies present, go to /urls else redirect to login page
+app.get('/', (req,res) => {
+
+  cookiesObject = req.cookies;
+
+  if (Object.keys(cookiesObject).length === 0){
+    //if someone is not logged in (no cookies exists when accessing /urls/new then redirect to login)  
+
+    res.redirect ('/login')
+    
+  } else {
+
+    const templateVars = {user: myAppUsers[req.cookies.user_id]}
+
+    res.redirect("/urls");
+
+  }
+
+    
+  
+})
+
+
 
 app.get('/register', (req,res) => {
 

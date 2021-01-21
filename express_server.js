@@ -62,7 +62,7 @@ const myAppUsers = {
   "userRandomID": {
     id: "userRandomID", 
     email: "user@example.com", 
-    password: "purple-monkey-dinosaur"
+    password: "purple"
   },
  "user2RandomID": {
     id: "user2RandomID", 
@@ -170,8 +170,8 @@ app.post('/register', (req,res) => {
     myAppUsers[userId]={
   
       'id': userId,
-      'email' : req.body.email,
-      'password' : req.body.password
+      'email' : userEnteredEmail,
+      'password' : userEnteredPassword
     }
   
   
@@ -208,9 +208,9 @@ app.post('/login', (req,res) => {
   // res.redirect(`/urls`)
   if (checkLoginDetails(attemptedLoginEmail, attemptedLoginPassword) !== false){
 
-    let user_id_cookie_value = checkLoginDetails(attemptedLoginEmail, attemptedLoginPassword);
+    let userId = checkLoginDetails(attemptedLoginEmail, attemptedLoginPassword);
     //store user ID cookie  
-    res.cookie('user_id', user_id_cookie_value)
+    res.cookie('user_id', userId )
 
     //redirect to /urls -- looks like something needs to be passed here so that 
     //the logic in the header partial gets activated when
@@ -296,7 +296,8 @@ app.get("/urls/new", (req, res) => {
 
 //route#2's ejs template (urls_new) contains a form object which upon submission invokes route#3..
  
-//ROUTE 3 // this is what gets executed after user submits url to be shortened// 
+//ROUTE 3 // this is what gets executed after user submits url to be shortened//
+//and where the url DB gets updated... 
 app.post("/urls", (req, res) => {
   //console.log(req.body);  // Log the POST request body to the console
   //req.body needs to be added as a value to our URL DB

@@ -18,10 +18,15 @@ const bodyParser = require("body-parser");
 
 app.use(bodyParser.urlencoded({extended: true}));
 
-// test data to work with
+// // test data to work with
+// const urlDatabase = {
+//   "b2xVn2": "http://www.lighthouselabs.ca",
+//   "9sm5xK": "http://www.google.com"
+// };
+
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  "b2xVn2": {longURL : "http://www.lighthouselabs.ca", userID: '12345'},
+  "9sm5xK": {longURL : "http://www.google.com", userID: '54321'}
 };
 
 
@@ -106,13 +111,7 @@ const checkLoginDetails = (attemptedLoginEmail, attemptedLoginPassword) => {
 
 }
 
-// route #12
 
-app.get('/login', (req,res) => {
-
-  res.render('login');
-
-});
 
 // not passing any template 
 app.get('/register', (req,res) => {
@@ -161,13 +160,16 @@ app.post('/register', (req,res) => {
     //redirect to
     res.redirect('/urls')
   }
-  
-
 
 })
 
-//function to check if an attemted login email address and password match whats in myAppusers
 
+// route #12
+app.get('/login', (req,res) => {
+
+  res.render('login');
+
+});
 
 // ROUTE #8 by sequence.. 
 app.post('/login', (req,res) => {
@@ -226,7 +228,7 @@ app.get('/urls', (req,res) => {
   //templateVars gets sent to es6 as an object.. 
   // //what it should be: 
   // const templateVars = {username: myAppUsers[req.cookies.user_id], urls: urlDatabase};
-  console.log(myAppUsers[req.cookies.user_id])
+  // console.log(myAppUsers[req.cookies.user_id])
   // testting username from cookies
   const templateVars = 
   {user: myAppUsers[req.cookies.user_id],
@@ -238,7 +240,7 @@ app.get('/urls', (req,res) => {
   //respond by rendering.. parameter 1 is the view we want to look at and template vars is the database object.. would probably be a link to some server/external db..
 
   //console.log(templateVars)
-  console.log(myAppUsers)
+  //console.log(myAppUsers)
 
   res.render("urls_index", templateVars);
 
@@ -249,9 +251,21 @@ app.get('/urls', (req,res) => {
 // /urls/new route needs to be defined before the GET /urls/:id r
 app.get("/urls/new", (req, res) => {
 
-  const templateVars = {user: myAppUsers[req.cookies.user_id]}
+  cookiesObject = req.cookies
 
-  res.render("urls_new", templateVars);
+  if (Object.keys(cookiesObject).length === 0){
+    //if someone is not logged in (no cookies exists when accessing /urls/new then redirect to login)  
+
+    res.redirect ('/login')
+    
+  } else {
+
+    const templateVars = {user: myAppUsers[req.cookies.user_id]}
+
+    res.render("urls_new", templateVars);
+
+  }
+
 
 });
 
@@ -261,7 +275,7 @@ app.get("/urls/new", (req, res) => {
 
 //route#2's ejs template (urls_new) contains a form object which upon submission invokes route#3..
  
-//ROUTE 3
+//ROUTE 3 // this is what gets executed after user submits url to be shortened// 
 app.post("/urls", (req, res) => {
   //console.log(req.body);  // Log the POST request body to the console
   //req.body needs to be added as a value to our URL DB
@@ -270,7 +284,12 @@ app.post("/urls", (req, res) => {
   let newKeyAKAShortURL = generateRandomString();
   //req.body.longURL; what the user enters in the submission box
   
-  urlDatabase[(newKeyAKAShortURL)] = req.body.longURL;
+  //original
+  //urlDatabase[(newKeyAKAShortURL)] = req.body.longURL;
+
+  //updated to now store the long URL and userID that generated it.. 
+  urlDatabase[(newKeyAKAShortURL)] = {longURL: req.body.longURL, userID : req.cookies.user_id }
+
 
   //is this the location response header??
   //redirect sends this to route #3
@@ -309,7 +328,11 @@ app.get("/urls/:shortURL", (req, res) => {
 //ROUTE #5
 //add route to redirect to to website given a shortURL discriptor in the url
 app.get("/u/:shortURL", (req, res) => {
-  const templateVars = {user: myAppUsers[req.cookies.user_id], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
+
+  //need to fix this part since the structure of urlDatabase has changed//
+
+
+  const templateVars = {user: myAppUsers[req.cookies.user_id], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL};
  
   if (urlDatabase[req.params.shortURL]){
 

@@ -303,7 +303,16 @@ app.post('/urls/:id', (req,res) => {
 //route #10
 app.get('/register', (req,res) => {
 
-  res.render("registration")
+  res.render('registration')
 
 })
 
+// route #11
+
+app.get('/login', (req,res) => {
+
+
+
+  res.render('login');
+
+});

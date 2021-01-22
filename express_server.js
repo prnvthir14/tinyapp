@@ -391,7 +391,7 @@ app.post("/urls", (req, res) => {
   //urlDatabase[(newKeyAKAShortURL)] = req.body.longURL;
 
   //updated to now store the long URL and userID that generated it.. 
-  console.log(req.session.user_id)
+  //console.log(req.session.user_id)
   urlDatabase[newKeyAKAShortURL] = {longURL: req.body.longURL, userID : userIDFromCookie }
 
 
@@ -418,15 +418,15 @@ app.get("/urls/:shortURL", (req, res) => {
 
  
   let userIDFromCookie = cookiesObject.user_id
-  console.log(urlDatabase)
+  //console.log(urlDatabase)
   // console.log(userIDFromCookie) // FflRc5 - matches myAppuser prnvthir
   // console.log(urlsForUserID) // empty... should have have cnn.com
 
   let shortURL = req.params.shortURL; //:id from url i.e. [ 'bWYDw2' ]
   // console.log(req.params.shortURL)
   // console.log(shortURL)
-  let longURL = urlsForUserID[shortURL] //.longURL; //long url
-
+  let longURL = urlsForUserID[shortURL].longURL //.
+  
   // console.log(shortURL) // jXIpLY - correct, matches key after url is generatef
   // //this long url is undefined because urlsForUserID is empty but it should have cnn.com in it.. since it is empty we are redirecting to urls/new 
   // console.log(longURL) 

@@ -55,9 +55,14 @@ const myAppUsers = {
     id: "54321", 
     email: "user2@example.com", 
     password: "dishwasher-funk"
+  },
+  "FflRc5:": {
+    id: "FflRc5", 
+    email: "prnvthir@gmail.com", 
+    password: "$2b$10$CupvDxb.WQkf85UhMT72mOcooEajdh6TYK7eTgg5nIKAo6VFPNxAi"
+
   }
 }
-
 ////////////////////////////////////////////////////////////////////////////
 //generate random alpha numeric 6 digit string for URL
 function generateRandomString() {
@@ -150,7 +155,7 @@ const checkShortURL = (urlsForUserID, shortURL, UserIDFromCookie) =>{
   //get access to all shortURls (keys pf urlDatabase)
   for (let key in urlsForUserID){
     //req.params comes as an array, so comparing 1st element with key  
-    if (shortURL[0] === key){
+    if (shortURL === key){
       //user.id comes from cookie
       //if 1s condition passes, does userid from cookie match userid for shorturl/key in  urlsForUserID
       if(UserIDFromCookie === urlsForUserID[key].userID){
@@ -160,10 +165,10 @@ const checkShortURL = (urlsForUserID, shortURL, UserIDFromCookie) =>{
       }
 
     } 
-    //if we fail either condition (invalid shortURL or user did not create this URL) then we 
-    return false
 
   } 
+  //if we fail either condition (invalid shortURL or user did not create this URL) then we 
+  return false
 
 }
 //////////////////////////////////////////////////////////////////////////
@@ -172,6 +177,8 @@ const checkShortURL = (urlsForUserID, shortURL, UserIDFromCookie) =>{
 app.get('/', (req,res) => {
 
   cookiesObject = req.session;
+
+  //console.log(myAppUsers)
 
   if (Object.keys(cookiesObject).length === 1){
     //if someone is not logged in (no cookies exists when accessing /urls/new then redirect to login)  
@@ -209,7 +216,7 @@ app.post('/register', (req,res) => {
   let userEnteredEmail = req.body.email;
   let userEnteredPassword = req.body.password;
   let userEnteredPasswordHashed = bcrypt.hashSync(userEnteredPassword, 10)
-
+  
   //
   //need to pass 
   //if email is empty, or password is empty or checkForExistingEmail true (email exists) then return status code..
@@ -222,6 +229,11 @@ app.post('/register', (req,res) => {
 
     let userId = generateRandomString();
 
+      
+    //set cookie to remember userID
+    //res.cookie('user_id', userId )
+    req.session.user_id = userId; 
+
     myAppUsers[userId]={
   
       'id': userId,
@@ -229,10 +241,7 @@ app.post('/register', (req,res) => {
       'password' : userEnteredPasswordHashed
     }
   
-  
-    //set cookie to remember userID
-    //res.cookie('user_id', userId )
-    req.session.user_id = userId; 
+
   
     //redirect to
     res.redirect('/urls')
@@ -302,30 +311,8 @@ app.post('/logout', (req,res) =>{
 // /urls - route page that displays all short URL and Long URLs in our urlDatabase. - VERIFIED 
 app.get('/urls', (req,res) => {
   
-  // console.log(req.cookies.username) //returns username from cookie
-
-  //templateVars gets sent to es6 as an object.. 
-  // //what it should be: 
-  // const templateVars = {username: myAppUsers[req.cookies.user_id], urls: urlDatabase};
-  // console.log(myAppUsers[req.cookies.user_id])
-  // testting username from cookies
-  // const templateVars = 
-  // {user: myAppUsers[req.cookies.user_id],
-  //   urls: urlDatabase
-  // };
+  console.log(urlDatabase)
   
-
-  //templateVars - used to send data to front end
-  //respond by rendering.. parameter 1 is the view we want to look at and template vars is the database object.. would probably be a link to some server/external db..
-
-  //console.log(templateVars)
-  //console.log(myAppUsers)
-
-  // res.render("urls_index", templateVars);
-
-  ////////////////////heavy changes due to permissions requirements
-  // check if the user us logged in or not
-
   cookiesObject = req.session;
   // console.log(Object.keys(cookiesObject).length)
   if (Object.keys(cookiesObject).length === 1){
@@ -337,7 +324,7 @@ app.get('/urls', (req,res) => {
 
     //call function to return only urls for that user.. 
     let urlsToPass = returnURLsForThisUser(req.session.user_id);
-
+    //console.log(myAppUsers)
 
     const templateVars = 
     {user: myAppUsers[req.session.user_id],
@@ -412,39 +399,52 @@ app.get("/urls/:shortURL", (req, res) => {
   cookiesObject = req.session;
 
   let urlsForUserID = returnURLsForThisUser(cookiesObject.user_id) 
-  //console.log(urlsForUserID)
+  console.log(Object.keys(urlsForUserID).length)
+
+
   let user = myAppUsers[cookiesObject.user_id];//{ id: '12345', email: 'user@example.com', password: 'purple' }
 
  
   let userIDFromCookie = cookiesObject.user_id
-  
-  let shortURL = req.params.shortURL; //:id from url i.e. [ 'b2xVn2' ]
-  let longURL = urlsForUserID[shortURL]['longURL']; //long url
+  console.log(urlDatabase)
+  // console.log(userIDFromCookie) // FflRc5 - matches myAppuser prnvthir
+  // console.log(urlsForUserID) // empty... should have have cnn.com
 
+  let shortURL = req.params.shortURL; //:id from url i.e. [ 'bWYDw2' ]
+  // console.log(req.params.shortURL)
+  // console.log(shortURL)
+  let longURL = urlsForUserID[shortURL] //.longURL; //long url
+
+  // console.log(shortURL) // jXIpLY - correct, matches key after url is generatef
+  // //this long url is undefined because urlsForUserID is empty but it should have cnn.com in it.. since it is empty we are redirecting to urls/new 
+  // console.log(longURL) 
+  
 
   //if not logged in, redirect to login.
   if (Object.keys(cookiesObject).length === 1){
 
     res. redirect('/login');
     
+  } else if (Object.keys(urlsForUserID).length === 0) {
+    //no urls for this user but is logged in, go to create new urls page
+    res. redirect('/urls/new');
   } else {
-    //if logged in:
+    //if logged in and urlsForUserID is not empty:
     if (checkShortURL(urlsForUserID,shortURL, userIDFromCookie)){
 
       const templateVars = {user,shortURL,longURL };   
       res.render("urls_show", templateVars);
 
-    } else {
+      } else {
+
       //send message saying you dont have access to this address. Please login to see your URLs or enter another shortURL
       res.send('You dont have access to this address. Please login to see your URLs or enter another shortURL')
-   }
+    }
 
   }
 
 
 });
-
-
 
 //inputEmail = req.body.email when checkForExistingEmail is called in the route.. 
 //userDatabse = myAppUsers when checkForExistingEmail is called in the route.. 

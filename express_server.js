@@ -10,8 +10,17 @@ const PORT = 8080;
 app.set("view engine", "ejs");
 
 //cookieparse - takes in string and outputs object for incoming data...
-var cookieParser = require('cookie-parser')
-app.use(cookieParser())
+// var cookieParser = require('cookie-parser')
+// app.use(cookieParser())
+//now using cookieSession
+const cookieSession = require('cookie-session')
+
+app.use(
+  cookieSession({
+    name: 'session',
+    keys: ['key1', 'key2'],
+  })
+);
 
 //
 const bodyParser = require("body-parser");
@@ -19,6 +28,7 @@ const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 
 const bcrypt = require('bcrypt');
+
 
 // // test data to work with
 // const urlDatabase = {
@@ -161,16 +171,16 @@ const checkShortURL = (urlsForUserID, shortURL, UserIDFromCookie) =>{
 //route 0 to home page.. if userId cookies present, go to /urls else redirect to login page
 app.get('/', (req,res) => {
 
-  cookiesObject = req.cookies;
+  cookiesObject = req.session;
 
-  if (Object.keys(cookiesObject).length === 0){
+  if (Object.keys(cookiesObject).length === 1){
     //if someone is not logged in (no cookies exists when accessing /urls/new then redirect to login)  
 
     res.redirect ('/login')
     
   } else {
 
-    const templateVars = {user: myAppUsers[req.cookies.user_id]}
+    const templateVars = {user: myAppUsers[req.session.user_id]}
 
     res.redirect("/urls");
 
@@ -221,8 +231,8 @@ app.post('/register', (req,res) => {
   
   
     //set cookie to remember userID
-    res.cookie('user_id', userId )
-  
+    //res.cookie('user_id', userId )
+    req.session.user_id = userId; 
   
     //redirect to
     res.redirect('/urls')
@@ -255,7 +265,9 @@ app.post('/login', (req,res) => {
 
     let userId = checkLoginDetails(attemptedLoginEmail, attemptedLoginPassword);
     //store user ID cookie  
-    res.cookie('user_id', userId )
+    //es.cookie('user_id', userId )
+    req.session.user_id = userId; 
+
 
     //redirect to /urls -- looks like something needs to be passed here so that 
     //the logic in the header partial gets activated when
@@ -275,8 +287,8 @@ app.post('/logout', (req,res) =>{
 
 
   // res.cookie('username','')
-  res.clearCookie('user_id')
-
+  // res.clearCookie('user_id')
+  req.session = null;
   // // //
   // res.redirect('/urls')
 
@@ -314,9 +326,9 @@ app.get('/urls', (req,res) => {
   ////////////////////heavy changes due to permissions requirements
   // check if the user us logged in or not
 
-  cookiesObject = req.cookies
-
-  if (Object.keys(cookiesObject).length === 0){
+  cookiesObject = req.session;
+  // console.log(Object.keys(cookiesObject).length)
+  if (Object.keys(cookiesObject).length === 1){
     //if someone is not logged in (no cookies exists when accessing /urls/new then redirect to login)  
 
     res.redirect ('/login')
@@ -324,14 +336,14 @@ app.get('/urls', (req,res) => {
   } else {
 
     //call function to return only urls for that user.. 
-    let urlsToPass = returnURLsForThisUser(req.cookies.user_id);
+    let urlsToPass = returnURLsForThisUser(req.session.user_id);
 
 
     const templateVars = 
-    {user: myAppUsers[req.cookies.user_id],
+    {user: myAppUsers[req.session.user_id],
       urls: urlsToPass
     };
-    console.log(myAppUsers)  
+    //console.log(myAppUsers)  
     res.render("urls_index", templateVars);
 
   }
@@ -343,16 +355,16 @@ app.get('/urls', (req,res) => {
 // /urls/new route needs to be defined before the GET /urls/:id r
 app.get("/urls/new", (req, res) => {
 
-  cookiesObject = req.cookies
+  cookiesObject = req.session;
 
-  if (Object.keys(cookiesObject).length === 0){
+  if (Object.keys(cookiesObject).length === 1){
     //if someone is not logged in (no cookies exists when accessing /urls/new then redirect to login)  
 
     res.redirect ('/login')
     
   } else {
 
-    const templateVars = {user: myAppUsers[req.cookies.user_id]}
+    const templateVars = {user: myAppUsers[req.session.user_id]}
 
     res.render("urls_new", templateVars);
 
@@ -381,7 +393,7 @@ app.post("/urls", (req, res) => {
   //urlDatabase[(newKeyAKAShortURL)] = req.body.longURL;
 
   //updated to now store the long URL and userID that generated it.. 
-  urlDatabase[(newKeyAKAShortURL)] = {longURL: req.body.longURL, userID : req.cookies.user_id }
+  urlDatabase[(newKeyAKAShortURL)] = {longURL: req.body.longURL, userID : req.session.user_id }
 
 
   //is this the location response header??
@@ -397,10 +409,10 @@ app.post("/urls", (req, res) => {
 //urls/:id render.. 
 app.get("/urls/:shortURL", (req, res) => {
 
-  cookiesObject = req.cookies
+  cookiesObject = req.session;
 
   let urlsForUserID = returnURLsForThisUser(cookiesObject.user_id) 
-  console.log(urlsForUserID)
+  //console.log(urlsForUserID)
   let user = myAppUsers[cookiesObject.user_id];//{ id: '12345', email: 'user@example.com', password: 'purple' }
 
  
@@ -411,7 +423,7 @@ app.get("/urls/:shortURL", (req, res) => {
 
 
   //if not logged in, redirect to login.
-  if (Object.keys(cookiesObject).length === 0){
+  if (Object.keys(cookiesObject).length === 1){
 
     res. redirect('/login');
     
@@ -446,7 +458,7 @@ app.get("/u/:shortURL", (req, res) => {
   //need to fix this part since the structure of urlDatabase has changed//
 
 
-  const templateVars = {user: myAppUsers[req.cookies.user_id], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL};
+  const templateVars = {user: myAppUsers[req.session.user_id], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL};
  
   if (urlDatabase[req.params.shortURL]){
 

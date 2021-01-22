@@ -18,6 +18,8 @@ const bodyParser = require("body-parser");
 
 app.use(bodyParser.urlencoded({extended: true}));
 
+const bcrypt = require('bcrypt');
+
 // // test data to work with
 // const urlDatabase = {
 //   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -101,7 +103,7 @@ const checkLoginDetails = (attemptedLoginEmail, attemptedLoginPassword) => {
     //  console.log(myAppUsers[users].password)
      if (attemptedLoginEmail === myAppUsers[users].email){
       //works for true case console.log('imhere')
-      if (attemptedLoginPassword === myAppUsers[users].password){
+      if (bcrypt.compareSync(attemptedLoginPassword,(myAppUsers[users].password)) ){
         //if true and login is successful, return the suer_ud to store in cookie//
         return myAppUsers[users].id
                 
@@ -196,6 +198,7 @@ app.post('/register', (req,res) => {
   //if email or pw are empty, return 400
   let userEnteredEmail = req.body.email;
   let userEnteredPassword = req.body.password;
+  let userEnteredPasswordHashed = bcrypt.hashSync(userEnteredPassword, 10)
 
   //
   //need to pass 
@@ -213,7 +216,7 @@ app.post('/register', (req,res) => {
   
       'id': userId,
       'email' : userEnteredEmail,
-      'password' : userEnteredPassword
+      'password' : userEnteredPasswordHashed
     }
   
   
@@ -328,7 +331,7 @@ app.get('/urls', (req,res) => {
     {user: myAppUsers[req.cookies.user_id],
       urls: urlsToPass
     };
-
+    console.log(myAppUsers)  
     res.render("urls_index", templateVars);
 
   }

@@ -40,7 +40,9 @@ const urlDatabase = {
   "b2xVn2": {longURL : "http://www.lighthouselabs.ca", userID: '12345'},
   "b2xVaz": {longURL : "http://www.skypsports.com", userID: '12345'},
   "b2xVqq": {longURL : "http://www.espncricinfo.com", userID: '12345'},
-  "9sm5xK": {longURL : "http://www.google.com", userID: '56847'}
+  "9sm5xK": {longURL : "http://www.google.com", userID: 'FflRc5'},
+  "7sAAxK": {longURL : "http://www.cnn.com", userID: 'FflRc5'},  
+  "9sCCxK": {longURL : "http://www.yahoo.ca", userID: 'FflRc5'}
 };
 
 
@@ -56,13 +58,15 @@ const myAppUsers = {
     email: "user2@example.com", 
     password: "dishwasher-funk"
   },
-  "FflRc5:": {
+  "FflRc5": {
     id: "FflRc5", 
     email: "prnvthir@gmail.com", 
     password: "$2b$10$CupvDxb.WQkf85UhMT72mOcooEajdh6TYK7eTgg5nIKAo6VFPNxAi"
 
   }
 }
+
+// myAppUsers[req.session.user_id]
 ////////////////////////////////////////////////////////////////////////////
 //generate random alpha numeric 6 digit string for URL
 function generateRandomString() {
@@ -240,9 +244,6 @@ app.post('/register', (req,res) => {
       'email' : userEnteredEmail,
       'password' : userEnteredPasswordHashed
     }
-  
-
-  
     //redirect to
     res.redirect('/urls')
   }
@@ -311,10 +312,16 @@ app.post('/logout', (req,res) =>{
 // /urls - route page that displays all short URL and Long URLs in our urlDatabase. - VERIFIED 
 app.get('/urls', (req,res) => {
   
-  console.log(urlDatabase)
-  
+  //get access to cookies from request
   cookiesObject = req.session;
-  // console.log(Object.keys(cookiesObject).length)
+
+  
+  const userIDFromSession = req.session.user_id
+  // console.log(userIDFromSession ,'aaaaaaa');
+  
+  // console.log('-----------');
+
+
   if (Object.keys(cookiesObject).length === 1){
     //if someone is not logged in (no cookies exists when accessing /urls/new then redirect to login)  
 
@@ -323,14 +330,15 @@ app.get('/urls', (req,res) => {
   } else {
 
     //call function to return only urls for that user.. 
-    let urlsToPass = returnURLsForThisUser(req.session.user_id);
-    //console.log(myAppUsers)
-
+    let urlsToPass = returnURLsForThisUser(userIDFromSession);
+    
+    //console.log(myAppUsers[userIDFromSession])
+    
     const templateVars = 
-    {user: myAppUsers[req.session.user_id],
-      urls: urlsToPass
+    { urls: urlsToPass, user: myAppUsers["FflRc5"]
+      
     };
-    //console.log(myAppUsers)  
+    //console.log(templateVars)  
     res.render("urls_index", templateVars);
 
   }
@@ -372,15 +380,19 @@ app.post("/urls", (req, res) => {
   //console.log(req.body);  // Log the POST request body to the console
   //req.body needs to be added as a value to our URL DB
   //declare and generate new key/tinyURL;
+  cookiesObject = req.session;
+  let userIDFromCookie = cookiesObject.user_id
 
   let newKeyAKAShortURL = generateRandomString();
+
   //req.body.longURL; what the user enters in the submission box
   
   //original
   //urlDatabase[(newKeyAKAShortURL)] = req.body.longURL;
 
   //updated to now store the long URL and userID that generated it.. 
-  urlDatabase[(newKeyAKAShortURL)] = {longURL: req.body.longURL, userID : req.session.user_id }
+  console.log(req.session.user_id)
+  urlDatabase[newKeyAKAShortURL] = {longURL: req.body.longURL, userID : userIDFromCookie }
 
 
   //is this the location response header??
@@ -396,10 +408,10 @@ app.post("/urls", (req, res) => {
 //urls/:id render.. 
 app.get("/urls/:shortURL", (req, res) => {
 
-  cookiesObject = req.session;
+  let cookiesObject = req.session;
 
   let urlsForUserID = returnURLsForThisUser(cookiesObject.user_id) 
-  console.log(Object.keys(urlsForUserID).length)
+  // console.log(Object.keys(urlsForUserID).length)
 
 
   let user = myAppUsers[cookiesObject.user_id];//{ id: '12345', email: 'user@example.com', password: 'purple' }
@@ -471,6 +483,33 @@ app.get("/u/:shortURL", (req, res) => {
     res.send('The url Does not exist');
 
   }
+
+});
+
+
+//route #12 
+//app.post that gets requested once the edite button on /urls gets clicked.
+
+app.post('/urls/:shortURL/edit', (req,res) => {
+
+  // console.log('hi');
+  // console.log(req.params.shortURL)//
+  // console.log(req.body.longURL)//
+
+  let cookiesObject = req.session;
+  let userIDFromCookie = cookiesObject.user_id
+
+  let shortURL = req.params.shortURL
+  let updatedLongURL = req.body.longURL;
+  
+  //update database with new long URL
+  urlDatabase[shortURL] = {longURL: updatedLongURL, userID: userIDFromCookie}
+  // // res.send('hi, we are about to inintate a delete')
+  //confirmed that post request is initiated after click.
+  //delete urlDatabase[req.params.shortURL];
+
+  res.redirect(`/urls`)
+
 
 });
 

@@ -26,10 +26,27 @@ app.use(bodyParser.urlencoded({extended: true}));
 
 const urlDatabase = {
   "b2xVn2": {longURL : "http://www.lighthouselabs.ca", userID: '12345'},
-  "9sm5xK": {longURL : "http://www.google.com", userID: '54321'}
+  "b2xVaz": {longURL : "http://www.skypsports.com", userID: '12345'},
+  "b2xVqq": {longURL : "http://www.espncricinfo.com", userID: '12345'},
+  "9sm5xK": {longURL : "http://www.google.com", userID: '56847'}
 };
 
 
+//empty object to store user data on registration
+const myAppUsers = { 
+  "12345": {
+    id: "12345", 
+    email: "user@example.com", 
+    password: "purple"
+  },
+ "54321": {
+    id: "54321", 
+    email: "user2@example.com", 
+    password: "dishwasher-funk"
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////
 //generate random alpha numeric 6 digit string for URL
 function generateRandomString() {
 
@@ -57,22 +74,7 @@ app.listen(PORT, () => {
 
 });
 
-//empty object to store user data on registration
-const myAppUsers = { 
-  "userRandomID": {
-    id: "userRandomID", 
-    email: "user@example.com", 
-    password: "purple"
-  },
- "user2RandomID": {
-    id: "user2RandomID", 
-    email: "user2@example.com", 
-    password: "dishwasher-funk"
-  }
-}
-
-
-
+////////////////////////////////////////////////////////////////////////////
 //function to check for existing emails..
 const checkForEmail = function (emailToCheck){
 
@@ -88,6 +90,7 @@ const checkForEmail = function (emailToCheck){
   return false;
 }
 
+////////////////////////////////////////////////////////////////////////////
 // function to check attempted login credientials against database
 const checkLoginDetails = (attemptedLoginEmail, attemptedLoginPassword) => {  
 
@@ -111,6 +114,47 @@ const checkLoginDetails = (attemptedLoginEmail, attemptedLoginPassword) => {
 
 }
 
+// function that will compare userId stored in cookie with userID in urlDatabase.. to be called in /urls get route
+//////////////////////////////////////////////////////////////////////////
+const returnURLsForThisUser = (UserIDFromCookie) => {
+
+  //empty object to store required kvps from urlDatabase
+  let urlDatabasePerUser = {};
+
+  for (let key in urlDatabase) { 
+   
+    if (UserIDFromCookie === urlDatabase[key].userID){
+    
+      urlDatabasePerUser[key] = urlDatabase[key];
+
+    }
+  } 
+  return urlDatabasePerUser;
+}
+
+//////////////////////////////////////////////////////////////////////////
+const checkShortURL = (urlsForUserID, shortURL, UserIDFromCookie) =>{
+
+  //get access to all shortURls (keys pf urlDatabase)
+  for (let key in urlsForUserID){
+    //req.params comes as an array, so comparing 1st element with key  
+    if (shortURL[0] === key){
+      //user.id comes from cookie
+      //if 1s condition passes, does userid from cookie match userid for shorturl/key in  urlsForUserID
+      if(UserIDFromCookie === urlsForUserID[key].userID){
+        //if both conditions pass, return true and let route contiue
+        return true;
+      
+      }
+
+    } 
+    //if we fail either condition (invalid shortURL or user did not create this URL) then we 
+    return false
+
+  } 
+
+}
+//////////////////////////////////////////////////////////////////////////
 
 //route 0 to home page.. if userId cookies present, go to /urls else redirect to login page
 app.get('/', (req,res) => {
@@ -128,9 +172,7 @@ app.get('/', (req,res) => {
 
     res.redirect("/urls");
 
-  }
-
-    
+  }    
   
 })
 
@@ -218,7 +260,8 @@ app.post('/login', (req,res) => {
 
   } else {
 
-    res.send ('403 Forbidden: Username or password is incorrect.')
+    res.status(403).redirect("/login")
+    console.log('403 Forbidden: Username or password is incorrect.')
 
   }
 
@@ -251,10 +294,10 @@ app.get('/urls', (req,res) => {
   // const templateVars = {username: myAppUsers[req.cookies.user_id], urls: urlDatabase};
   // console.log(myAppUsers[req.cookies.user_id])
   // testting username from cookies
-  const templateVars = 
-  {user: myAppUsers[req.cookies.user_id],
-    urls: urlDatabase
-  };
+  // const templateVars = 
+  // {user: myAppUsers[req.cookies.user_id],
+  //   urls: urlDatabase
+  // };
   
 
   //templateVars - used to send data to front end
@@ -263,7 +306,32 @@ app.get('/urls', (req,res) => {
   //console.log(templateVars)
   //console.log(myAppUsers)
 
-  res.render("urls_index", templateVars);
+  // res.render("urls_index", templateVars);
+
+  ////////////////////heavy changes due to permissions requirements
+  // check if the user us logged in or not
+
+  cookiesObject = req.cookies
+
+  if (Object.keys(cookiesObject).length === 0){
+    //if someone is not logged in (no cookies exists when accessing /urls/new then redirect to login)  
+
+    res.redirect ('/login')
+    
+  } else {
+
+    //call function to return only urls for that user.. 
+    let urlsToPass = returnURLsForThisUser(req.cookies.user_id);
+
+
+    const templateVars = 
+    {user: myAppUsers[req.cookies.user_id],
+      urls: urlsToPass
+    };
+
+    res.render("urls_index", templateVars);
+
+  }
 
 }); 
 
@@ -319,24 +387,45 @@ app.post("/urls", (req, res) => {
   
 });
 
+////
+//need to commit - changes to route 4 + helper fns
 
 //ROUTE #4
 //urls/:id render.. 
 app.get("/urls/:shortURL", (req, res) => {
 
+  cookiesObject = req.cookies
+
+  let urlsForUserID = returnURLsForThisUser(cookiesObject.user_id) 
+  console.log(urlsForUserID)
+  let user = myAppUsers[cookiesObject.user_id];//{ id: '12345', email: 'user@example.com', password: 'purple' }
+
+ 
+  let userIDFromCookie = cookiesObject.user_id
   
-  const templateVars = { user: myAppUsers[req.cookies.user_id], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
-  
-  if (urlDatabase[req.params.shortURL]){
-
-    res.render("urls_show", templateVars);
+  let shortURL = req.params.shortURL; //:id from url i.e. [ 'b2xVn2' ]
+  let longURL = urlsForUserID[shortURL]['longURL']; //long url
 
 
+  //if not logged in, redirect to login.
+  if (Object.keys(cookiesObject).length === 0){
+
+    res. redirect('/login');
+    
   } else {
+    //if logged in:
+    if (checkShortURL(urlsForUserID,shortURL, userIDFromCookie)){
 
-    res.send('The url Does not exist');
+      const templateVars = {user,shortURL,longURL };   
+      res.render("urls_show", templateVars);
+
+    } else {
+      //send message saying you dont have access to this address. Please login to see your URLs or enter another shortURL
+      res.send('You dont have access to this address. Please login to see your URLs or enter another shortURL')
+   }
 
   }
+
 
 });
 

@@ -35,7 +35,7 @@ app.use(bodyParser.urlencoded({extended: true}));
 const bcrypt = require('bcrypt');
 
 //helper functions 
-const {generateRandomString, checkForEmail, checkLoginDetails, returnURLsForThisUser, checkShortURL } = require('./helperFunctionsForServer');
+const {generateRandomString, checkForEmail, checkLoginDetails, returnURLsForThisUser, checkShortURLExists, checkURLOwner } = require('./helperFunctionsForServer');
 
 const urlDatabase = {
   "b2xVn2": {longURL : "http://www.lighthouselabs.ca", userID: '12345'},
@@ -267,14 +267,13 @@ app.get('/urls', (req,res) => {
 app.get("/urls/new", (req, res) => {
 
   cookiesObject = req.session;
+  const templateVars = {user: myAppUsers[req.session.user_id]}
 
   if (Object.keys(cookiesObject).length === 1) {
 
-    res.redirect ('/login')
+    res.render("loginToSee",templateVars)
     
   } else {
-
-    const templateVars = {user: myAppUsers[req.session.user_id]}
 
     res.render("urls_new", templateVars);
 
@@ -307,29 +306,36 @@ app.get("/urls/:shortURL", (req, res) => {
   let user = myAppUsers[cookiesObject.user_id]; 
   let userIDFromCookie = cookiesObject.user_id;
   let shortURL = req.params.shortURL; 
-  let longURL = urlsForUserID[shortURL].longURL;
-
+  
+  const templateVars = {user,shortURL};   
+  
   if (Object.keys(cookiesObject).length === 1){
-
-    res. redirect('/login');
+    //user not logged in, redirect to login page
+    res.redirect('/login');
     
   } else if (Object.keys(urlsForUserID).length === 0) {
     //no urls for this user but is logged in, go to create new urls page
-    res. redirect('/urls/new');
+    res.redirect('/urls/new');
+  
+  } else if (!(checkShortURLExists(shortURL,urlDatabase))){
+    //short URL does not exist in db; need to render a page
+    res.render('urls_new_redirectWhenURLdoesntExist', templateVars)
+
+  } else if (!(checkURLOwner(shortURL,urlDatabase, userIDFromCookie))) {
+    //user does not own shortURL
+    res.render('urls_new_redirectWhenURLisNotOwned',templateVars)
+
   } else {
     //if logged in and urlsForUserID is not empty:
-    if (checkShortURL(urlsForUserID,shortURL, userIDFromCookie)){
+    if (checkURLOwner(shortURL, urlsForUserID, userIDFromCookie)) {
+      //if url exists and user is current onwer, render show
+      let longURL = urlsForUserID[shortURL].longURL;
+      const templateVars1 = {user,shortURL, longURL}
+    
+      res.render("urls_show", templateVars1);
 
-      const templateVars = {user,shortURL,longURL };   
-      res.render("urls_show", templateVars);
-
-      } else {
-
-      //send message saying you dont have access to this address. Please login to see your URLs or enter another shortURL
-      res.send('You dont have access to this address. Please login to see your URLs or enter another shortURL')
-    }
-
-  }
+    } 
+  }  
 
 });
 

@@ -120,13 +120,23 @@ app.post('/register', (req,res) => {
   let userEnteredEmail = req.body.email;
   let userEnteredPassword = req.body.password;
   let userEnteredPasswordHashed = bcrypt.hashSync(userEnteredPassword, 10)
-  
 
-  //if email is empty, or password is empty or checkForExistingEmail true (email exists) then return status code..
-  if (((userEnteredEmail) === '') || ((userEnteredPassword) === '') || ((checkForEmail(userEnteredEmail, myAppUsers))) === true) {
-    
-    res.send('Status Code: 400');
+  const templateVars = 
+  { urls: [], 
+    user: []
+  };
   
+  //if email is empty, or password is empty or checkForExistingEmail true (email exists) then return status code..
+  if (((userEnteredEmail) === '') || ((userEnteredPassword) === '')){
+    
+    // need to pass template vars for header to work.
+    res.render('bad_registration_fieldsNotComplete',templateVars)
+
+  } else if (((checkForEmail(userEnteredEmail, myAppUsers))) === true) {
+    //email has already been registered
+    // need to pass template vars for header to work.
+    res.render('bad_registration_emailAlreadyRegistered',templateVars)
+
   } else {
     //register user
 

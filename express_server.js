@@ -1,19 +1,23 @@
-const express = require("express");
+//import and require the following libraries and functions:
 
 //initialize our app server
+const express = require("express");
 const app = express ();
 
 //default port to listen to.
 const PORT = 8080;
 
+app.listen(PORT, () => {
+
+  console.log(`Example app listening on port ${PORT}!`);
+
+});
+
 //using ejs as our apps templating engine
 app.set("view engine", "ejs");
 
-//cookieparse - takes in string and outputs object for incoming data...
-// var cookieParser = require('cookie-parser')
-// app.use(cookieParser())
-//now using cookieSession
-const cookieSession = require('cookie-session')
+//cookiesession to read incoming client cookies and encrypt userID. 
+const cookieSession = require('cookie-session');
 
 app.use(
   cookieSession({
@@ -22,19 +26,16 @@ app.use(
   })
 );
 
-//
+//body parser; incoming HTML
 const bodyParser = require("body-parser");
 
 app.use(bodyParser.urlencoded({extended: true}));
 
+//bcrypt to 
 const bcrypt = require('bcrypt');
 
-
-// // test data to work with
-// const urlDatabase = {
-//   "b2xVn2": "http://www.lighthouselabs.ca",
-//   "9sm5xK": "http://www.google.com"
-// };
+//helper functions 
+const {generateRandomString, checkForEmail, checkLoginDetails, returnURLsForThisUser, checkShortURL } = require('./helperFunctionsForServer');
 
 const urlDatabase = {
   "b2xVn2": {longURL : "http://www.lighthouselabs.ca", userID: '12345'},
@@ -46,7 +47,7 @@ const urlDatabase = {
 };
 
 
-//empty object to store user data on registration
+//test userdatabase objcet
 const myAppUsers = { 
   "12345": {
     id: "12345", 
@@ -64,118 +65,8 @@ const myAppUsers = {
     password: "$2b$10$CupvDxb.WQkf85UhMT72mOcooEajdh6TYK7eTgg5nIKAo6VFPNxAi"
 
   }
-}
+};
 
-// myAppUsers[req.session.user_id]
-////////////////////////////////////////////////////////////////////////////
-//generate random alpha numeric 6 digit string for URL
-function generateRandomString() {
-
-  let randomString = '';
-  let lengthOfTinyURL = 6;
-
-  // declare all characters
-  const characters ='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  const charactersLength = characters.length;
-
-  for (let i = 0; i < lengthOfTinyURL; i++){
-
-    randomString += characters.charAt(Math.floor(Math.random() * charactersLength));
-
-  }
-
-  return randomString;
-
-}
-
-
-app.listen(PORT, () => {
-
-  console.log(`Example app listening on port ${PORT}!`);
-
-});
-
-////////////////////////////////////////////////////////////////////////////
-//function to check for existing emails..
-const checkForEmail = function (emailToCheck){
-
-  for (let x in myAppUsers){  
-  
-
-    if(emailToCheck === myAppUsers[x].email){
-      //if email exists, return true
-      return true;
-  
-    }  
-  }
-  return false;
-}
-
-////////////////////////////////////////////////////////////////////////////
-// function to check attempted login credientials against database
-const checkLoginDetails = (attemptedLoginEmail, attemptedLoginPassword) => {  
-
-  for (let users in myAppUsers){
-      
-    //gets us access to all users
-    //console.log(myAppUsers[users].email)
-    //  console.log(myAppUsers[users].password)
-     if (attemptedLoginEmail === myAppUsers[users].email){
-      //works for true case console.log('imhere')
-      if (bcrypt.compareSync(attemptedLoginPassword,(myAppUsers[users].password)) ){
-        //if true and login is successful, return the suer_ud to store in cookie//
-        return myAppUsers[users].id
-                
-      }
-
-    }
-    
-  } 
-  return false; 
-
-}
-
-// function that will compare userId stored in cookie with userID in urlDatabase.. to be called in /urls get route
-//////////////////////////////////////////////////////////////////////////
-const returnURLsForThisUser = (UserIDFromCookie) => {
-
-  //empty object to store required kvps from urlDatabase
-  let urlDatabasePerUser = {};
-
-  for (let key in urlDatabase) { 
-   
-    if (UserIDFromCookie === urlDatabase[key].userID){
-    
-      urlDatabasePerUser[key] = urlDatabase[key];
-
-    }
-  } 
-  return urlDatabasePerUser;
-}
-
-//////////////////////////////////////////////////////////////////////////
-const checkShortURL = (urlsForUserID, shortURL, UserIDFromCookie) =>{
-
-  //get access to all shortURls (keys pf urlDatabase)
-  for (let key in urlsForUserID){
-    //req.params comes as an array, so comparing 1st element with key  
-    if (shortURL === key){
-      //user.id comes from cookie
-      //if 1s condition passes, does userid from cookie match userid for shorturl/key in  urlsForUserID
-      if(UserIDFromCookie === urlsForUserID[key].userID){
-        //if both conditions pass, return true and let route contiue
-        return true;
-      
-      }
-
-    } 
-
-  } 
-  //if we fail either condition (invalid shortURL or user did not create this URL) then we 
-  return false
-
-}
-//////////////////////////////////////////////////////////////////////////
 
 //route 0 to home page.. if userId cookies present, go to /urls else redirect to login page
 app.get('/', (req,res) => {
@@ -203,7 +94,29 @@ app.get('/', (req,res) => {
 
 app.get('/register', (req,res) => {
 
-  res.render('registration')
+  //get access to cookies from request
+  cookiesObject = req.session;
+  const userIDFromSession = req.session.user_id;
+
+  //call function to return only urls for that user.. 
+  let urlsToPass = returnURLsForThisUser(userIDFromSession, urlDatabase, myAppUsers);
+
+  const templateVars = 
+  { urls: urlsToPass, 
+    user: myAppUsers[req.session.user_id]
+  };
+
+
+  if (Object.keys(cookiesObject).length === 1){
+    //if someone is not logged in (no cookies exists when accessing /urls/new then redirect to login)  
+
+    res.render("registration", templateVars);
+    
+    } else {
+    //if logged in, go to the users URLS
+    res.render("urls_index", templateVars);
+
+  }
 
 })
 
@@ -224,9 +137,9 @@ app.post('/register', (req,res) => {
   //
   //need to pass 
   //if email is empty, or password is empty or checkForExistingEmail true (email exists) then return status code..
-  if ( ((userEnteredEmail) === '') || ((userEnteredPassword) === '') || ((checkForEmail(userEnteredEmail))) === true) {
+  if ( ((userEnteredEmail) === '') || ((userEnteredPassword) === '') || ((checkForEmail(userEnteredEmail, myAppUsers))) === true) {
     
-    res.send('Status Code: 400')
+    res.send('Status Code: 400');
   
   } else {
     //register user
@@ -254,7 +167,29 @@ app.post('/register', (req,res) => {
 // route #12
 app.get('/login', (req,res) => {
 
-  res.render('login');
+  //get access to cookies from request
+  cookiesObject = req.session;
+  const userIDFromSession = req.session.user_id;
+
+  //call function to return only urls for that user.. 
+  let urlsToPass = returnURLsForThisUser(userIDFromSession, urlDatabase, myAppUsers);
+
+  const templateVars = 
+  { urls: urlsToPass, 
+    user: myAppUsers[req.session.user_id]
+  };
+
+
+  if (Object.keys(cookiesObject).length === 1){
+    //if someone is not logged in (no cookies exists when accessing /urls/new then redirect to login)  
+
+    res.render("login", templateVars);
+    
+    } else {
+    //if logged in, go to the users URLS
+    res.render("urls_index", templateVars);
+
+  }
 
 });
 
@@ -271,9 +206,9 @@ app.post('/login', (req,res) => {
 
   //after storing cookie, return to redirect
   // res.redirect(`/urls`)
-  if (checkLoginDetails(attemptedLoginEmail, attemptedLoginPassword) !== false){
+  if (checkLoginDetails(attemptedLoginEmail, attemptedLoginPassword, myAppUsers) !== false){
 
-    let userId = checkLoginDetails(attemptedLoginEmail, attemptedLoginPassword);
+    let userId = checkLoginDetails(attemptedLoginEmail, attemptedLoginPassword, myAppUsers);
     //store user ID cookie  
     //es.cookie('user_id', userId )
     req.session.user_id = userId; 
@@ -317,7 +252,7 @@ app.get('/urls', (req,res) => {
 
   
   const userIDFromSession = req.session.user_id
-  // console.log(userIDFromSession ,'aaaaaaa');
+  //console.log(userIDFromSession ,'aaaaaaa');
   
   // console.log('-----------');
 
@@ -330,12 +265,14 @@ app.get('/urls', (req,res) => {
   } else {
 
     //call function to return only urls for that user.. 
-    let urlsToPass = returnURLsForThisUser(userIDFromSession);
+    let urlsToPass = returnURLsForThisUser(userIDFromSession, urlDatabase, myAppUsers);
+
+    //console.log(myAppUsers)
     
     //console.log(myAppUsers[userIDFromSession])
     
     const templateVars = 
-    { urls: urlsToPass, user: myAppUsers["FflRc5"]
+    { urls: urlsToPass, user: myAppUsers[req.session.user_id]
       
     };
     //console.log(templateVars)  
@@ -410,8 +347,8 @@ app.get("/urls/:shortURL", (req, res) => {
 
   let cookiesObject = req.session;
 
-  let urlsForUserID = returnURLsForThisUser(cookiesObject.user_id) 
-  // console.log(Object.keys(urlsForUserID).length)
+  let urlsForUserID = returnURLsForThisUser(cookiesObject.user_id, urlDatabase) 
+  //console.log(Object.keys(urlsForUserID).length)
 
 
   let user = myAppUsers[cookiesObject.user_id];//{ id: '12345', email: 'user@example.com', password: 'purple' }

@@ -238,23 +238,22 @@ app.post('/logout', (req,res) =>{
 // /urls - route page that displays all short URL and Long URLs in our urlDatabase. - VERIFIED 
 app.get('/urls', (req,res) => {
   
-  //get access to cookies from request
+   //get access to cookies from request
   cookiesObject = req.session;
-  
-  const userIDFromSession = req.session.user_id
+  const userIDFromSession = req.session.user_id;
+
+  let urlsToPass = returnURLsForThisUser(userIDFromSession, urlDatabase, myAppUsers);
+
+  const templateVars = 
+  { urls: urlsToPass, 
+    user: myAppUsers[req.session.user_id]  
+  };
 
   if (Object.keys(cookiesObject).length === 1) {
 
-    res.redirect ('/login')
+    res.render("loginToSee",templateVars)
     
   } else {
-
-    let urlsToPass = returnURLsForThisUser(userIDFromSession, urlDatabase, myAppUsers);
-
-    const templateVars = 
-    { urls: urlsToPass, 
-      user: myAppUsers[req.session.user_id]  
-    };
 
     res.render("urls_index", templateVars);
 

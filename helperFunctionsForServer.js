@@ -75,7 +75,7 @@ const checkLoginDetails = (attemptedLoginEmail, attemptedLoginPassword, userData
 }
 
 // 4 function that will compare userId stored in cookie with userID in urlDatabase.. to be called in /urls get route
-const returnURLsForThisUser = (UserIDFromCookie, myURLDatabase, userDatabse) => {
+const returnURLsForThisUser = (UserIDFromCookie, myURLDatabase) => {
 
   //empty object to store required kvps from urlDatabase
   let urlDatabasePerUser = {};
@@ -91,7 +91,39 @@ const returnURLsForThisUser = (UserIDFromCookie, myURLDatabase, userDatabse) => 
   return urlDatabasePerUser;
 }
 
+// #5 checkShortURLExists checks if shortURL exists at all
+const checkShortURLExists = (shortURL, urlsDatabase) => {
+
+  for (let key in urlsDatabase){
+
+    if (shortURL === key) {
+      //return true, the shortURL exitst
+      return true;
+
+    }
+
+  }
+  //shortURL does not exist in DB
+  return false;
+
+}; 
+
+
+//#6 if a shortURL exists, check if the current user owns it
+const checkURLOwner = (shortURL, urlsDatabase, userIDFromCookie) => {
+
+  if (checkShortURLExists(shortURL, urlsDatabase)){
+
+    if (userIDFromCookie ===  urlsDatabase[shortURL].userID){
+      //return true since the current user owns the shortURL
+      return true;
+    }
+
+  }
+  return false;
+}
 
 
 
-module.exports = {generateRandomString, checkForEmail, checkLoginDetails, returnURLsForThisUser }
+
+module.exports = {generateRandomString, checkForEmail, checkLoginDetails, returnURLsForThisUser, checkShortURLExists, checkURLOwner}

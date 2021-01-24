@@ -5,13 +5,21 @@ TinyApp is a full stack web application built with Node and Express that allows 
 ## Final Product
 
 !["Login Page"](https://github.com/prnvthir14/tinyapp/blob/master/docs/login.png)
+
 !["Bad Login Attempt"](https://github.com/prnvthir14/tinyapp/blob/master/docs/badLogin.png)
+
 !["Registration Page"](https://github.com/prnvthir14/tinyapp/blob/master/docs/register.png)
+
 !["Bad Registration - email in user"](https://github.com/prnvthir14/tinyapp/blob/master/docs/badRegistrationEmailInUSe.png)
+
 !["Urls Landing page "](https://github.com/prnvthir14/tinyapp/blob/master/docs/urlsLandingPage.png)
+
 !["Add a new URL"](https://github.com/prnvthir14/tinyapp/blob/master/docs/addNewURL.png)
+
 !["Edit existing entry"](https://github.com/prnvthir14/tinyapp/blob/master/docs/urlsEditPage.png?raw=true)
+
 !["URLS page after adding new URL"](https://github.com/prnvthir14/tinyapp/blob/master/docs/urlsAfterAddingURL.png)
+
 !["URLS page after adding new URL"](https://github.com/prnvthir14/tinyapp/blob/master/docs/urlsAfterDelete.png)
 
 

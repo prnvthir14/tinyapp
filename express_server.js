@@ -37,44 +37,44 @@ const bcrypt = require('bcrypt');
 //helper functions 
 const {generateRandomString, checkForEmail, checkLoginDetails, returnURLsForThisUser, checkShortURLExists, checkURLOwner } = require('./helperFunctionsForServer');
 
-const urlDatabase = {
-  "b2xVn2": {longURL : "http://www.lighthouselabs.ca", userID: '12345'},
-  "b2xVaz": {longURL : "http://www.skypsports.com", userID: '12345'},
-  "b2xVqq": {longURL : "http://www.espncricinfo.com", userID: '12345'},
-  "9sm5xK": {longURL : "http://www.google.com", userID: 'FflRc5'},
-  "7sAAxK": {longURL : "http://www.cnn.com", userID: 'FflRc5'},  
-  "9sCCxK": {longURL : "http://www.yahoo.ca", userID: 'FflRc5'}
-};
+// ////TEST DATA 
+// //testURLDatabse:
+// const urlDatabase = {
+//   "b2xVn2": {longURL : "http://www.lighthouselabs.ca", userID: '12345'},
+//   "b2xVaz": {longURL : "http://www.skypsports.com", userID: '12345'},
+//   "b2xVqq": {longURL : "http://www.espncricinfo.com", userID: '12345'},
+//   "9sm5xK": {longURL : "http://www.google.com", userID: 'FflRc5'},
+//   "7sAAxK": {longURL : "http://www.cnn.com", userID: 'FflRc5'},  
+//   "9sCCxK": {longURL : "http://www.yahoo.ca", userID: 'FflRc5'}
+// };
 
 
-//test userdatabase objcet
-const myAppUsers = { 
-  "12345": {
-    id: "12345", 
-    email: "user@example.com", 
-    password: "purple"
-  },
- "54321": {
-    id: "54321", 
-    email: "user2@example.com", 
-    password: "dishwasher-funk"
-  },
-  "FflRc5": {
-    id: "FflRc5", 
-    email: "prnvthir@gmail.com", 
-    password: "$2b$10$CupvDxb.WQkf85UhMT72mOcooEajdh6TYK7eTgg5nIKAo6VFPNxAi"
+// //test userdatabase objcets
+// const myAppUsers = { 
+//   "12345": {
+//     id: "12345", 
+//     email: "user@example.com", 
+//     password: "purple"
+//   },
+//  "54321": {
+//     id: "54321", 
+//     email: "user2@example.com", 
+//     password: "dishwasher-funk"
+//   },
+//   "FflRc5": {
+//     id: "FflRc5", 
+//     email: "prnvthir@gmail.com", 
+//     password: "$2b$10$CupvDxb.WQkf85UhMT72mOcooEajdh6TYK7eTgg5nIKAo6VFPNxAi"
 
-  }
-};
+//   }
+// };
 
-
-//route 0 to home page.. if userId cookies present, go to /urls else redirect to login page
+//get the urls page if the user is logged in, otherwise redirect the me to the login page.
 app.get('/', (req,res) => {
 
   cookiesObject = req.session;
 
   if (Object.keys(cookiesObject).length === 1) {
-    //if someone is not logged in (no cookies exists when accessing /urls/new then redirect to login)  
 
     res.redirect ('/login');
     
@@ -86,6 +86,7 @@ app.get('/', (req,res) => {
   
 });
 
+//get the user to the registration page if not logged in. if logged in, get the urls home page.
 app.get('/register', (req,res) => {
 
   //get access to cookies from request
@@ -101,44 +102,42 @@ app.get('/register', (req,res) => {
 
 
   if (Object.keys(cookiesObject).length === 1) {
-    //if someone is not logged in (no cookies exists when accessing /urls/new then redirect to login)  
-
+ 
     res.render("registration", templateVars);
     
     } else {
     //if logged in, go to the users URLS
-    res.render("urls_index", templateVars);
+    res.redirect('/urls');
 
   }
 
 })
 
 
-// route #11
+// post register: 
 app.post('/register', (req,res) => {
 
   let userEnteredEmail = req.body.email;
   let userEnteredPassword = req.body.password;
-  let userEnteredPasswordHashed = bcrypt.hashSync(userEnteredPassword, 10)
+  let userEnteredPasswordHashed = bcrypt.hashSync(userEnteredPassword, 10);
 
+  // empty templatevars to render header on page.
   const templateVars = 
   { urls: [], 
     user: []
   };
   
-  //if email is empty, or password is empty or checkForExistingEmail true (email exists) then return status code..
+  //if email is empty, or password is empty render bad_registration_fieldsNotComplete with form to regregister. 
   if (((userEnteredEmail) === '') || ((userEnteredPassword) === '')){
     
-    // need to pass template vars for header to work.
-    res.render('bad_registration_fieldsNotComplete',templateVars)
+    res.render('bad_registration_fieldsNotComplete',templateVars);
 
   } else if (((checkForEmail(userEnteredEmail, myAppUsers))) === true) {
-    //email has already been registered
-    // need to pass template vars for header to work.
-    res.render('bad_registration_emailAlreadyRegistered',templateVars)
+    //email has already been registered, render bad_registration_emailAlreadyRegistered
+    res.render('bad_registration_emailAlreadyRegistered',templateVars);
 
   } else {
-    //register user
+    //register user and redirect to /urls.
 
     let userId = generateRandomString();
      
@@ -158,7 +157,7 @@ app.post('/register', (req,res) => {
 })
 
 
-// route #12
+// get login page if not logged in, else redirect to /urls if logged in.
 app.get('/login', (req,res) => {
 
   //get access to cookies from request
@@ -180,19 +179,18 @@ app.get('/login', (req,res) => {
     
     } else {
     //if logged in, go to the users URLS
-    res.render("urls_index", templateVars);
+    res.redirect('/urls');
 
   }
 
 });
 
-// ROUTE #8 by sequence.. 
+// post login route 
 app.post('/login', (req,res) => {
   
   let attemptedLoginEmail = req.body.email;
   let attemptedLoginPassword = req.body.password;
 
-  //get access to cookies from request
   cookiesObject = req.session;
   const userIDFromSession = req.session.user_id;
 
@@ -204,7 +202,7 @@ app.post('/login', (req,res) => {
     user: myAppUsers[req.session.user_id]
   };
 
-  if (checkLoginDetails(attemptedLoginEmail, attemptedLoginPassword, myAppUsers) !== false){
+  if (checkLoginDetails(attemptedLoginEmail, attemptedLoginPassword, myAppUsers) !== false) {
 
     let userId = checkLoginDetails(attemptedLoginEmail, attemptedLoginPassword, myAppUsers);
     //store session cookie as userID already stored in our DB during user registration
@@ -217,14 +215,14 @@ app.post('/login', (req,res) => {
     res.render("not_registered", templateVars)
 
   } else if (checkLoginDetails(attemptedLoginEmail, attemptedLoginPassword, myAppUsers) === false) {
-    //case when login is unsuccsefull
+    //case when login is unsuccsefull but the email is registered. 
     res.render("unsucsessfull_Login", templateVars)
 
   } 
 
 });
 
-//route #9 - logout route
+// post logout route, clear cookies and redirect to login page.
 app.post('/logout', (req,res) =>{
   //clear cookies
   req.session = null;
@@ -234,14 +232,11 @@ app.post('/logout', (req,res) =>{
 
 })
 
-// ROUTE #1
-// /urls - route page that displays all short URL and Long URLs in our urlDatabase. - VERIFIED 
+// route to display URLS for the user that is logged in. if not logged in, user is redirected to a login page. 
 app.get('/urls', (req,res) => {
   
-   //get access to cookies from request
   cookiesObject = req.session;
   const userIDFromSession = req.session.user_id;
-
   let urlsToPass = returnURLsForThisUser(userIDFromSession, urlDatabase, myAppUsers);
 
   const templateVars = 
@@ -261,9 +256,7 @@ app.get('/urls', (req,res) => {
 
 }); 
 
-// ROUTE #2
-//GET route to render the urls_new.ejs template.
-// /urls/new route needs to be defined before the GET /urls/:id r
+// route to generate a new shortURL URL for the user that is logged in. if not logged in, user is redirected to a login page. 
 app.get("/urls/new", (req, res) => {
 
   cookiesObject = req.session;
@@ -282,23 +275,24 @@ app.get("/urls/new", (req, res) => {
 });
 
 
-//ROUTE 3 // this is what gets executed after user submits url to be shortened//
-//and where the url DB gets updated... 
+//post route initaited once a new URL is submitted to be shortened. 
 app.post("/urls", (req, res) => {
 
   cookiesObject = req.session;
   let userIDFromCookie = cookiesObject.user_id;
-
+  
+  //generate new random id for new URL
   let newKeyAKAShortURL = generateRandomString();
 
+  //update URL database. 
   urlDatabase[newKeyAKAShortURL] = {longURL: req.body.longURL, userID : userIDFromCookie };
 
+  //redirect to /urls/:shortURL
   res.redirect(`/urls/${newKeyAKAShortURL}`);
   
 });
 
-//ROUTE #4
-//urls/:id render.. 
+//gets shortURL for a given user. 
 app.get("/urls/:shortURL", (req, res) => {
 
   let cookiesObject = req.session;
@@ -339,7 +333,7 @@ app.get("/urls/:shortURL", (req, res) => {
 
 });
 
-//ROUTE #5
+
 //add route to redirect to to website given a shortURL discriptor in the url
 app.get("/u/:shortURL", (req, res) => {
 
@@ -359,14 +353,11 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 
-//route #12 
-//app.post that gets requested once the edite button on /urls gets clicked.
-
+//app.post that gets requested once the edit button on /urls gets clicked.
 app.post('/urls/:shortURL/edit', (req,res) => {
 
   let cookiesObject = req.session;
   let userIDFromCookie = cookiesObject.user_id
-
   let shortURL = req.params.shortURL;
   let updatedLongURL = req.body.longURL;
   
@@ -377,7 +368,6 @@ app.post('/urls/:shortURL/edit', (req,res) => {
 
 });
 
-//route #6 
 //app.post that gets requested once the delete button on /urls gets clicked.
 app.post('/urls/:shortURL/delete', (req,res) => {
 
@@ -387,7 +377,6 @@ app.post('/urls/:shortURL/delete', (req,res) => {
 
 });
 
-//route #7 
 //app.post that gets requested once the delete button on /urls gets clicked.
 app.post('/urls/:id', (req,res) => {
 
@@ -396,7 +385,7 @@ app.post('/urls/:id', (req,res) => {
   
   urlDatabase[shortURL] = letNewLongURL;
   
-  res.redirect(`/urls`)
+  res.redirect(`/urls`);
 
 });
 

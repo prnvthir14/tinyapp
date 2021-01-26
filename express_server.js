@@ -37,37 +37,39 @@ const bcrypt = require('bcrypt');
 //helper functions 
 const {generateRandomString, checkForEmail, checkLoginDetails, returnURLsForThisUser, checkShortURLExists, checkURLOwner } = require('./helperFunctionsForServer');
 
-// ////TEST DATA 
-// //testURLDatabse:
-// const urlDatabase = {
-//   "b2xVn2": {longURL : "http://www.lighthouselabs.ca", userID: '12345'},
-//   "b2xVaz": {longURL : "http://www.skypsports.com", userID: '12345'},
-//   "b2xVqq": {longURL : "http://www.espncricinfo.com", userID: '12345'},
-//   "9sm5xK": {longURL : "http://www.google.com", userID: 'FflRc5'},
-//   "7sAAxK": {longURL : "http://www.cnn.com", userID: 'FflRc5'},  
-//   "9sCCxK": {longURL : "http://www.yahoo.ca", userID: 'FflRc5'}
-// };
+////TEST DATA 
+//testURLDatabse:
+const urlDatabase = {
+  "b2xVn2": {longURL : "http://www.lighthouselabs.ca", userID: '12345'},
+  "b2xVaz": {longURL : "http://www.skypsports.com", userID: '12345'},
+  "b2xVqq": {longURL : "http://www.espncricinfo.com", userID: '12345'},
+  "9sm5xK": {longURL : "http://www.google.com", userID: 'FflRc5'},
+  "7sAAxK": {longURL : "http://www.cnn.com", userID: 'FflRc5'},  
+  "9sCCxK": {longURL : "http://www.yahoo.ca", userID: 'FflRc5'}
+};
 
 
-// //test userdatabase objcets
-// const myAppUsers = { 
-//   "12345": {
-//     id: "12345", 
-//     email: "user@example.com", 
-//     password: "purple"
-//   },
-//  "54321": {
-//     id: "54321", 
-//     email: "user2@example.com", 
-//     password: "dishwasher-funk"
-//   },
-//   "FflRc5": {
-//     id: "FflRc5", 
-//     email: "prnvthir@gmail.com", 
-//     password: "$2b$10$CupvDxb.WQkf85UhMT72mOcooEajdh6TYK7eTgg5nIKAo6VFPNxAi"
-
-//   }
-// };
+//test userdatabase objcets
+const myAppUsers = { 
+  "12345": {
+    id: "12345", 
+    email: "user@example.com", 
+    password: "purple"
+  },
+ "54321": {
+    id: "54321", 
+    email: "user2@example.com", 
+    password: "dishwasher-funk"
+  },
+  "FflRc5": {
+    id: "FflRc5", 
+    //test email ID
+    email: "prnvthir@gmail.com", 
+    //user enters 'arsenal' for test
+    password: "$2b$10$CupvDxb.WQkf85UhMT72mOcooEajdh6TYK7eTgg5nIKAo6VFPNxAi"
+    
+  }
+};
 
 //get the urls page if the user is logged in, otherwise redirect the me to the login page.
 app.get('/', (req,res) => {

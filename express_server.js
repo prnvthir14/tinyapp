@@ -40,9 +40,11 @@ const {generateRandomString, checkForEmail, checkLoginDetails, returnURLsForThis
 ////TEST DATA 
 //testURLDatabse:
 const urlDatabase = {
+  //test that user does not own these ID's
   "b2xVn2": {longURL : "http://www.lighthouselabs.ca", userID: '12345'},
   "b2xVaz": {longURL : "http://www.skypsports.com", userID: '12345'},
   "b2xVqq": {longURL : "http://www.espncricinfo.com", userID: '12345'},
+  //user owns these ID's
   "9sm5xK": {longURL : "http://www.google.com", userID: 'FflRc5'},
   "7sAAxK": {longURL : "http://www.cnn.com", userID: 'FflRc5'},  
   "9sCCxK": {longURL : "http://www.yahoo.ca", userID: 'FflRc5'}
@@ -51,16 +53,16 @@ const urlDatabase = {
 
 //test userdatabase objcets
 const myAppUsers = { 
-  "12345": {
-    id: "12345", 
-    email: "user@example.com", 
-    password: "purple"
-  },
- "54321": {
-    id: "54321", 
-    email: "user2@example.com", 
-    password: "dishwasher-funk"
-  },
+//   "12345": {
+//     id: "12345", 
+//     email: "user@example.com", 
+//     password: "purple"
+//   },
+//  "54321": {
+//     id: "54321", 
+//     email: "user2@example.com", 
+//     password: "dishwasher-funk"
+//   },
   "FflRc5": {
     id: "FflRc5", 
     //test email ID

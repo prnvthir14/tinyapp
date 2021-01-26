@@ -101,7 +101,7 @@ app.get('/register', (req,res) => {
 
   const templateVars = 
   { urls: urlsToPass, 
-    user: myAppUsers[req.session.user_id]
+    user: myAppUsers[userIDFromSession]
   };
 
 
@@ -173,7 +173,7 @@ app.get('/login', (req,res) => {
 
   const templateVars = 
   { urls: urlsToPass, 
-    user: myAppUsers[req.session.user_id]
+    user: myAppUsers[userIDFromSession]
   };
 
   if (Object.keys(cookiesObject).length === 1) {
@@ -203,7 +203,7 @@ app.post('/login', (req,res) => {
 
   const templateVars = 
   { urls: urlsToPass, 
-    user: myAppUsers[req.session.user_id]
+    user: myAppUsers[userIDFromSession]
   };
 
   if (checkLoginDetails(attemptedLoginEmail, attemptedLoginPassword, myAppUsers) !== false) {
@@ -245,7 +245,7 @@ app.get('/urls', (req,res) => {
 
   const templateVars = 
   { urls: urlsToPass, 
-    user: myAppUsers[req.session.user_id]  
+    user: myAppUsers[userIDFromSession]  
   };
 
   if (Object.keys(cookiesObject).length === 1) {
@@ -264,7 +264,8 @@ app.get('/urls', (req,res) => {
 app.get("/urls/new", (req, res) => {
 
   cookiesObject = req.session;
-  const templateVars = {user: myAppUsers[req.session.user_id]}
+  const userIDFromSession = req.session.user_id;
+  const templateVars = {user: myAppUsers[userIDFromSession]}
 
   if (Object.keys(cookiesObject).length === 1) {
 
